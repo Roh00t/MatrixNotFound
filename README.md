@@ -27,3 +27,22 @@ Contains the scoring rubric that will be used by the judges to score your submis
 Explains the challenge and provides some additional resources for the hackathon.
 
 **Copyright 2025-2026 The MathWorks, Inc.**
+
+## Run the MATLAB prediction pipeline
+
+The end-to-end pipeline is in [`main.m`](./main.m), with data loading,
+preprocessing, feature engineering, model selection, and submission writing
+modularized under [`src/`](./src). It requires MATLAB and the Statistics and
+Machine Learning Toolbox.
+
+1. Make sure `data/train.csv` and `data/test.csv` are present.
+2. Open the repository root in MATLAB and run `main.m`.
+3. Review the printed Leave-One-Year-Out and random 5-fold RMSE results.
+4. Find the generated `submission.csv` in the repository root.
+
+The script uses a fixed random seed. Imputation and feature engineering are
+fit separately inside each validation fold; final imputation statistics are
+learned from the complete training set and reused unchanged for the test set.
+`Year_Factor` is converted to a numeric value so the model can handle the
+test-only year. The submission writer checks prediction finiteness and row
+counts before writing `id,site_eui`.

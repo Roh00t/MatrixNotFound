@@ -18,7 +18,7 @@ function [trainTbl, testTbl] = preprocessData(trainTbl, testTbl)
 %        filling, because whether a value was recorded is itself predictive.
 %     4. energy_star_rating is filled with the median of its facility_type,
 %        falling back to the overall median for types with no ratings.
-%     5. All other numeric gaps (year_built, wind, fog) use the overall median.
+%     5. All remaining numeric gaps use the overall training median.
 
     arguments
         trainTbl table
@@ -54,23 +54,30 @@ end
 function imputer = fitImputer(trainTbl)
 %FITIMPUTER Learn every fill value from the training table.
 
-    % Columns that get a <name>_missing indicator. The three wind columns
-    % are always missing together, so max_wind_speed stands in for them.
-    imputer.flagVars = ["year_built", "energy_star_rating", "max_wind_speed", "days_with_fog"];
+    imputer.flagVars = ["year_built", "energy_star_rating", ...
+        "direction_max_wind_speed", "direction_peak_wind_speed", ...
+        "max_wind_speed", "days_with_fog"];
 
     % Median energy_star_rating for each facility_type category. Categories
     % are aligned between train and test (see loadData), so the category
     % code can index straight into this vector. Types without any rating
     % stay NaN here and fall through to the overall median.
     typeCode = double(trainTbl.facility_type);
+    assert(all(isfinite(typeCode)), ...
+        "preprocessData:missingFacilityType", ...
+        "facility_type must be present in the training rows.");
     nTypes   = numel(categories(trainTbl.facility_type));
     imputer.energyStarByType = accumarray(typeCode, trainTbl.energy_star_rating, [nTypes 1], ...
         @(x) median(x, "omitmissing"), NaN);
 
-    % Overall median of every numeric column, used for all remaining gaps.
+    % Overall median of every numeric column, used for remaining gaps and
+    % as the fallback for facility types with no observed ratings.
     isNumericVar = varfun(@isnumeric, trainTbl, OutputFormat="uniform");
     imputer.numericVars    = string(trainTbl.Properties.VariableNames(isNumericVar));
     imputer.numericMedians = median(trainTbl{:, imputer.numericVars}, 1, "omitmissing");
+    assert(all(isfinite(imputer.numericMedians)), ...
+        "preprocessData:noObservedValues", ...
+        "At least one numeric predictor has no finite training values.");
 end
 
 function tbl = applyImputer(tbl, imputer)
@@ -82,11 +89,19 @@ function tbl = applyImputer(tbl, imputer)
     end
 
     % 2) energy_star_rating: median rating of the building's facility type.
-    groupMedian = imputer.energyStarByType(double(tbl.facility_type));
+    typeCode = double(tbl.facility_type);
+    assert(all(isfinite(typeCode)), ...
+        "preprocessData:missingFacilityType", ...
+        "facility_type must be present for every row.");
+    groupMedian = imputer.energyStarByType(typeCode);
     isGap = ismissing(tbl.energy_star_rating);
     tbl.energy_star_rating(isGap) = groupMedian(isGap);
 
     % 3) Every other gap, plus facility types with no ratings: overall median.
-    tbl = fillmissing(tbl, "constant", imputer.numericMedians, ...
-        DataVariables=imputer.numericVars);
+    for k = 1:numel(imputer.numericVars)
+        variable = imputer.numericVars(k);
+        values = tbl.(variable);
+        values(ismissing(values)) = imputer.numericMedians(k);
+        tbl.(variable) = values;
+    end
 end

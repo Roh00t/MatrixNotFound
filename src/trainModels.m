@@ -1,12 +1,13 @@
 function [finalModel, results] = trainModels(X, y)
 %TRAINMODELS Compare candidate models under two CV schemes and fit the best.
 %
-%   [finalModel, results] = TRAINMODELS(X, y) evaluates each candidate
-%   model with:
+%   [finalModel, results] = TRAINMODELS(X, y) expects raw predictors from
+%   loadData and evaluates each candidate model with:
 %
 %     * Leave-One-Year-Out (LOYO) CV - each Year_Factor is held out in turn.
 %       The test set is a single unseen year (7), so this is the scheme that
-%       mirrors the real prediction task.
+%       mirrors the real prediction task. Imputation and feature engineering
+%       are refit independently within every training fold.
 %     * Random 5-fold CV - shown for contrast. The same building appears in
 %       several years, so random folds let the model "recognise" buildings
 %       it has already seen and report an optimistic RMSE.
@@ -22,7 +23,9 @@ function [finalModel, results] = trainModels(X, y)
     modelNames = ["Regression tree (fitrtree)"; "LSBoost ensemble (fitrensemble)"];
     trainFcns  = {@trainTree; @trainBoost};
 
-    loyoFolds   = X.Year_Factor;
+    loyoFolds   = str2double(string(X.Year_Factor));
+    assert(all(isfinite(loyoFolds)), ...
+        "trainModels:invalidYear", "Year_Factor must contain numeric year levels.");
     randomFolds = randomKFoldIds(height(X), 5);
 
     nModels     = numel(modelNames);
@@ -33,8 +36,10 @@ function [finalModel, results] = trainModels(X, y)
 
     for m = 1:nModels
         fprintf("\nCross-validating %s ...\n", modelNames(m));
-        [loyoRMSE(m), perYearRMSE(m, :)] = crossValidateModel(trainFcns{m}, X, y, loyoFolds);
-        kfoldRMSE(m) = crossValidateModel(trainFcns{m}, X, y, randomFolds);
+        [loyoRMSE(m), perYearRMSE(m, :)] = crossValidateModel( ...
+            trainFcns{m}, X, y, loyoFolds, @preparePredictors);
+        kfoldRMSE(m) = crossValidateModel( ...
+            trainFcns{m}, X, y, randomFolds, @preparePredictors);
         fprintf("  LOYO RMSE = %.3f | random 5-fold RMSE = %.3f\n", loyoRMSE(m), kfoldRMSE(m));
     end
 
@@ -51,7 +56,8 @@ function [finalModel, results] = trainModels(X, y)
     % --- Refit the winner on all training data ----------------------------
     [~, best] = min(loyoRMSE);
     fprintf("Refitting best model (%s) on all %d training rows ...\n", modelNames(best), height(X));
-    finalModel = trainFcns{best}(X, y);
+    [preparedX, ~] = preparePredictors(X, X);
+    finalModel = trainFcns{best}(preparedX, y);
 end
 
 % =========================================================================
@@ -81,4 +87,11 @@ function foldId = randomKFoldIds(n, k)
     for f = 1:k
         foldId(test(partition, f)) = f;
     end
+end
+
+function [trainTbl, validationTbl] = preparePredictors(trainTbl, validationTbl)
+    %PREPAREPREDICTORS Fit fold-local preprocessing and engineer both partitions.
+    [trainTbl, validationTbl] = preprocessData(trainTbl, validationTbl);
+    trainTbl = engineerFeatures(trainTbl);
+    validationTbl = engineerFeatures(validationTbl);
 end

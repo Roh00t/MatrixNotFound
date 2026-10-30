@@ -5,9 +5,9 @@
 % under src/ so it can be read, tested and re-run independently:
 %
 %   1. loadData            - ingest CSVs and cast column types
-%   2. preprocessData      - impute missing values, align categories
-%   3. engineerFeatures    - building age, thermal-load and wind features
-%   4. trainModels         - baseline tree vs. ensembles, 5-fold CV RMSE
+%   2. trainModels         - fold-local preprocessing, validation, final fit
+%   3. preprocessData      - fit train-only imputation and apply to test
+%   4. engineerFeatures    - building age and thermal-load interactions
 %   5. writeSubmission     - predict test set and write submission.csv
 
 clear; clc;
@@ -23,18 +23,17 @@ rng(42, "twister");   % reproducible CV folds and ensemble training
 
 summary(trainTbl(:, ["Year_Factor", "State_Factor", "building_class", "facility_type"]))
 
-%% Step 2: Preprocessing and imputation
-% Fill values are learned on train only; Year_Factor becomes an ordinal
-% number because the test set is entirely year 7 (unseen in training).
-[trainTbl, testTbl] = preprocessData(trainTbl, testTbl);
+%% Step 2: Model selection and validation
+% Imputation and feature engineering are learned inside each CV training
+% fold to prevent validation data from influencing preprocessing.
+[finalModel, cvResults] = trainModels(trainTbl, yTrain);
 
-%% Step 3: Feature engineering
-% Building age, seasonal thermal load, and efficiency-scale interactions.
+%% Step 3: Fit preprocessing on all training rows and prepare the test set
+[trainTbl, testTbl] = preprocessData(trainTbl, testTbl);
 trainTbl = engineerFeatures(trainTbl);
 testTbl  = engineerFeatures(testTbl);
 fprintf("Engineered features: %d predictors\n", width(trainTbl));
 
-%% Step 4: Model selection and validation
-% Baseline tree vs. LSBoost, scored with Leave-One-Year-Out CV (mirrors the
-% unseen test year) and random 5-fold CV (for contrast).
-[finalModel, cvResults] = trainModels(trainTbl, yTrain);
+%% Step 4: Write the competition submission
+submissionFile = fullfile(projectRoot, "submission.csv");
+submission = writeSubmission(finalModel, testTbl, testIds, submissionFile);
