@@ -53,7 +53,7 @@ shortlist = readtable(fullfile(projectRoot, "results", "retrofit_shortlist.csv")
 disp(shortlist(1:10, ["rank", "facility_type", "State_Factor", "floor_area", ...
     "actual_eui", "expected_eui", "excess_pct", "excess_MWh_per_year"]))
 showFigure(fullfile(figuresDir, "5_retrofit_radar.png"));
-%[text] The radar flags buildings for inspection rather than delivering a verdict: a hospital may legitimately run hot, and the anonymised data cannot tell us why a building is high. It does tell an energy manager where to look first.
+%[text] The radar flags buildings for inspection rather than delivering a verdict: a hospital may legitimately run hot, and the anonymised data cannot tell us why a building is high. The most extreme cases (several times the expected EUI) may also be metering or data-entry errors, which are worth catching too. Either way, it tells an energy manager where to look first.
 %%
 %[text] ## 7. Summary
 %[text] - **Data:** leakage-safe imputation fitted inside every fold, missingness flags and physically meaningful features.

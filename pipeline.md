@@ -1,9 +1,11 @@
 # Building energy prediction: implementation pipeline
 
-Developer specification, 30 October 2026. Start with [architecture.md](architecture.md)
-for module contracts and [docs/RESOURCES.md](docs/RESOURCES.md) for references.
-Only ingestion is implemented today; model code below is illustrative design,
-not an already executable end-to-end system. No measured model score exists yet.
+Original developer specification, written on 30 October 2026 before implementation.
+**The pipeline is now implemented and verified.** For what actually runs, see
+[ARCHITECTURE.md](ARCHITECTURE.md) (modules, data flow, model iteration log) and
+[README.md](README.md) (results). Code snippets below are the original design
+and may differ from the implemented functions in `src/`. References are in
+[docs/RESOURCES.md](docs/RESOURCES.md).
 
 ## 1. Goal and acceptance criteria
 
@@ -41,17 +43,15 @@ models. Adapt its sequence, but retain informative categories and fit cleaning
 statistics inside validation folds rather than deleting all incomplete columns
 or normalizing before splitting.
 
-Run existing ingestion by opening MATLAB and executing:
+Run the implemented pipeline by opening the repository root in MATLAB and executing:
 
 ```matlab
-cd('C:\Users\Asus\OneDrive\Documents\GitHub\MatrixNotFound')
-step01_ingest
+main
 ```
 
 Run the saved script by name. Pasting its body into the Command Window changes
-how `mfilename` resolves paths. Inspect `ingestionReport.MissingPredictors` and
-`ingestionReport.UnseenTestCategories`. Runtime validation status is recorded in
-[docs/STATUS.md](docs/STATUS.md), not implied by the existence of code.
+how `mfilename` resolves paths. Implementation status is recorded in
+[docs/STATUS.md](docs/STATUS.md).
 
 ## 3. Ingestion and exploratory analysis
 

@@ -16,8 +16,13 @@ Running `main.m` executes the full pipeline end to end: it loads the data, prepa
 
 ## Outputs
 
-- `submission.csv` — test-set predictions in the competition submission format.
-- Generated figures — model or feature-analysis visualizations produced by the pipeline.
+- `submission.csv`: test-set predictions in the competition format (9,705 rows, `id,site_eui`).
+- `results/retrofit_shortlist.csv`: the top 50 Retrofit Radar candidates.
+- `figures/*.png`: five presentation figures (RMSE by year, validation gap, predicted vs actual, feature importance, Retrofit Radar).
+- `ProjectReport.html`: the exported live-script report.
+- `results/pipelineResults.mat`: the compact final model, CV results and out-of-fold predictions (gitignored).
+
+The full run takes about 25-35 minutes. To review results without retraining, run `ProjectReport` after `main` has run once.
 
 Review the command-window output for validation metrics and any completion messages. Do not edit the source CSV files when preparing a run.
 

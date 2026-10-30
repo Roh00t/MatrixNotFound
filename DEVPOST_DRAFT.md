@@ -14,23 +14,24 @@ Retrofit Radar predicts a building's site energy use intensity (`site_eui`) from
 
 ## How we built it
 
-We built a reproducible, end-to-end machine-learning pipeline in MATLAB and iterated through three model stages:
+We built a reproducible, end-to-end machine-learning pipeline in MATLAB and iterated through four models, scored by leave-one-year-out RMSE (lower is better):
 
-1. **Model 1 — Baseline:** trained a baseline model using the available features to establish a performance reference.
-2. **Model 2 — Feature selection and reduction:** tested whether selecting or reducing features could improve generalization and simplify the model.
-3. **Model 3 — LSBoost:** deployed MATLAB's native least-squares boosting (`LSBoost`), a gradient-boosted tree approach in the same broad family as XGBoost, to pursue the strongest predictive performance.
+1. **Regression tree baseline** (`fitrtree`): 61.02.
+2. **LSBoost v1** (`fitrensemble`, 300 trees): MATLAB's native least-squares gradient boosting, in the same family as XGBoost. 41.06, a 33% improvement.
+3. **LSBoost v2, shrinkage** (lower learning rate, larger leaves, binning): 41.85. It didn't help, and we kept the result to show the iteration honestly.
+4. **LSBoost v3, feature selection** (dropped the 36 monthly temperature columns, which are identical for every building in a state-year and let the trees memorise those combinations): **40.12, our best**. It was the best model in 5 of 6 held-out years and is used for the submission.
 
-We compared models using validation designed around the dataset's time split and used the selected model to produce building-level predictions.
+The selected model then powers **Retrofit Radar**. It compares each building's actual energy use with what the model expects for similar buildings, and ranks buildings by excess energy. In the latest year, 1,316 of 22,449 buildings use at least 50% more energy than expected.
 
 ## Challenges we ran into
 
-The training data covers Years 1–6, while the test data is from Year 7. A random split would not reflect that temporal gap, so we used Leave-One-Year-Out Cross-Validation to evaluate how well models generalize to a year they have not seen.
+The training data covers Years 1–6, while the test data is from Year 7. A random split would not reflect that temporal gap, so we used Leave-One-Year-Out Cross-Validation to evaluate how well models generalize to a year they have not seen. The difference is large: random 5-fold CV reported RMSE 50.29 for our baseline tree, against 61.02 when a whole year is held out.
 
 We also found **2.4 RMSE of hidden data leakage** in validation: preprocessing had been fit before the cross-validation split, allowing information from held-out rows to influence preprocessing. We eliminated this leakage by fitting preprocessing separately inside each CV training fold and applying those learned transformations to that fold's held-out data.
 
 ## Accomplishments that we're proud of
 
-- Engineered physical features—including efficiency rating × floor area, floor area × heating and cooling degree days, and building age—ranked among the top eight features by importance.
+- Engineered physical features (efficiency rating × floor area, floor area × heating and cooling degree days, and building age) all rank among the top nine predictors of the final model.
 - Built the implementation using native MATLAB tools, without external machine-learning dependencies.
 - Designed validation to reflect the real temporal shift from training years to the test year.
 

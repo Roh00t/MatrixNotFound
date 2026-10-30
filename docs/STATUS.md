@@ -1,26 +1,20 @@
 # Implementation status
 
-Updated 30 October 2026 during the developer handoff.
+Updated 30 October 2026 after the full verified run of `main.m` (MATLAB R2026b, Statistics and Machine Learning Toolbox).
 
 | Component | Status |
 | --- | --- |
-| Starter review | BuildingRegressionModels.m and README reviewed |
-| Local data audit | Row counts, columns, blank counts and year-factor shift inspected |
-| Step 1 ingestion | Existing step01_ingest.m and src/loadBuildingData.m present |
-| Ingestion runtime check | Blocked: MATLAB batch startup reports MathWorks services error 5201; ingestion has not been runtime-verified |
-| Year metadata preservation | Planned; current loader makes unseen test year 7 undefined |
-| Preprocessing/features | Specified, not implemented |
-| Training/evaluation/tuning | Specified, not implemented; no measured RMSE |
-| Final model/submission | Not generated |
-| Presentation | Storyboard and design specification written; rendered deck not created |
+| Ingestion (`src/loadData.m`) | Done: 75,757 train / 9,705 test rows, 62 predictors, categories aligned |
+| Year handling | Done: `Year_Factor` is numeric; test year 7 is handled without becoming undefined |
+| Preprocessing (`src/preprocessData.m`) | Done: train-only imputation, missingness flags, `year_built = 0` treated as missing |
+| Feature engineering (`src/engineerFeatures.m`) | Done: building age, floor area × HDD/CDD, Energy Star × floor area |
+| Validation | Done: leave-one-year-out CV with preprocessing inside each fold; random 5-fold shown for contrast |
+| Model iteration (`src/trainModels.m`) | Done: tree 61.02 → LSBoost v1 41.06 → v2 41.85 → **v3 40.12** (LOYO RMSE) |
+| Submission | Done: `submission.csv`, 9,705 × 2, finite and non-negative, ids match `sample_solution.csv` |
+| Retrofit Radar (`src/retrofitRadar.m`) | Done: `results/retrofit_shortlist.csv` |
+| Figures (`src/makeFigures.m`) | Done: `figures/1-5_*.png` |
+| Report (`ProjectReport.m`) | Done: exported to `ProjectReport.html` |
+| Presentation | In progress (Shuan): see [PRESENTATION.md](PRESENTATION.md) and use the figures in `figures/` |
+| Devpost / public repo | In progress (Rohit): see [../DEVPOST_DRAFT.md](../DEVPOST_DRAFT.md) |
 
-Do not treat documentation snippets as finished executable modules. The current
-priority is a successful ingestion run and the explicit year handling described
-in pipeline.md, followed by the preprocessing and baseline gates.
-
-Runtime attempt: MATLAB R2026b with a workspace-local preferences directory;
-batch command changed into this repository, ran step01_ingest, and would have
-asserted 75,757 training rows and 9,705 test rows. MATLAB failed before those
-assertions ran: `Unable to communicate with required MathWorks services (error 5201)`.
-Try running the script in the team's already signed-in MATLAB desktop session.
-This is an environment/service blocker, not proof that the loader passes or fails.
+Run `main` from the repository root to reproduce everything (~25-35 min).
