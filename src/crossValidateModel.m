@@ -1,0 +1,50 @@
+function [cvRMSE, foldRMSE, oofPred] = crossValidateModel(trainFcn, X, y, foldId, prepareFcn)
+%CROSSVALIDATEMODEL Cross-validate a model over arbitrary fold assignments.
+%
+%   [cvRMSE, foldRMSE, oofPred] = CROSSVALIDATEMODEL(trainFcn, X, y, foldId)
+%   optionally accepts prepareFcn, which prepares training and validation
+%   predictors using statistics learned from the training fold only.
+%
+%     trainFcn - handle @(X, y) that returns a fitted model supporting predict
+%     X        - predictor table
+%     y        - response vector
+%     foldId   - one fold label per row; each unique label is held out once
+%     prepareFcn - optional handle @(XTrain, XValidation) returning the
+%                  corresponding prepared tables; defaults to identity
+%
+%   Returns the overall out-of-fold RMSE, the RMSE of each fold (ordered by
+%   unique(foldId)), and the out-of-fold prediction for every row.
+%
+%   Passing fold labels rather than a cvpartition object lets the same
+%   function run both random k-fold CV and grouped CV such as
+%   leave-one-year-out (foldId = X.Year_Factor).
+
+    arguments
+        trainFcn (1,1) function_handle
+        X        table
+        y        (:,1) double
+        foldId   (:,1) {mustBeEqualLength(foldId, y)}
+        prepareFcn (1,1) function_handle = @(XTrain, XValidation) deal(XTrain, XValidation)
+    end
+
+    folds    = unique(foldId);
+    foldRMSE = zeros(numel(folds), 1);
+    oofPred  = nan(size(y));
+
+    for k = 1:numel(folds)
+        isVal = foldId == folds(k);
+        [XTrain, XValidation] = prepareFcn(X(~isVal, :), X(isVal, :));
+        mdl = trainFcn(XTrain, y(~isVal));
+
+        oofPred(isVal) = predict(mdl, XValidation);
+        foldRMSE(k)    = computeRMSE(y(isVal), oofPred(isVal));
+    end
+
+    cvRMSE = computeRMSE(y, oofPred);
+end
+
+function mustBeEqualLength(a, b)
+    if numel(a) ~= numel(b)
+        error("crossValidateModel:lengthMismatch", "foldId must have one entry per row of y.");
+    end
+end
