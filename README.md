@@ -112,4 +112,4 @@ The seed is fixed with `rng(42)`. More detail is in [docs/SETUP.md](docs/SETUP.m
 
 - Data: [WiDS Datathon 2022](https://www.kaggle.com/competitions/widsdatathon2022), provided by the hackathon organisers.
 - Starter material: Copyright 2025-2026 The MathWorks, Inc. (see `license.txt`).
-- AI assistance: Claude Code (Anthropic), an AI coding agent in Visual Studio Code, Gemini (Google), and Meshy AI (3D building models) were used during development. See [GUARDRAILS.md](GUARDRAILS.md) (section 7) and the [GAI declaration](docs/declarations/GAI_Declaration_MatrixNotFound.pdf).
+- AI assistance: Claude Code (Anthropic), an AI coding agent in Visual Studio Code, Gemini (Google), and Meshy AI (3D building models) were used during development. See [GUARDRAILS.md](GUARDRAILS.md) (section 7).
