@@ -99,6 +99,21 @@ What we learned:
 | `ProjectReport.html` | `export` of `ProjectReport.m` | yes |
 | `results/pipelineResults.mat` | `main.m` | no (gitignored, regenerated) |
 
+## 3D building simulator (model in the browser)
+
+`dashboard/simulator.html` lets you click 3D models of NTU's The Hive and The Arc and run the final model on them live.
+
+| File | Responsibility |
+| --- | --- |
+| `tools/buildSimulator.m` | Loads `results/pipelineResults.mat` and calls `exportModelForWeb` (about 1 minute, no retraining) |
+| `src/exportModelForWeb.m` | Flattens all 300 trees (split variable, threshold, children, leaf value, left and right category codes), exports category levels, climate-state baseline vectors and facility-type references to `dashboard/model.js`. **Self-check:** a MATLAB walk of the exported trees must equal `predict()` on all 9,705 test rows, or the export fails |
+| `dashboard/predict.js` | Plain JavaScript: `encode()` mirrors `preprocessData` + `engineerLegacyFeatures` for one building; `predict()` walks the trees with MATLAB's rules (`x < cut` goes left; a category in neither branch stops at that node) |
+| `tests/web/checkPredict.mjs` | Node.js check against `tests/web/model_check.json`: 500 encoded test rows plus 9 scenarios run through the full MATLAB pipeline. Current result: difference **0** |
+| `tools/prepare_models.py` | Headless Blender: decimates the Meshy exports (The Arc 7.3M → 150k triangles, 245 MB → 11 MB), downsizes textures and writes base64 `dashboard/models/*.js` so the page works from `file://` |
+| `dashboard/simulator.html` | three.js 0.170.0 (pinned, jsDelivr) scene with click/hover picking, a scan animation and an EUI colour tint. The panel and model work without 3D; if the CDN or WebGL is unavailable it falls back to building cards |
+
+Outputs shown: predicted EUI, annual MWh (EUI × area × 0.293 kWh/kBtu), average power draw in kW (annual kWh ÷ 8,760), the percentile among training buildings of the same facility type, and an optional Retrofit Radar verdict when you enter a metered EUI.
+
 ## Independent cross-check pipeline
 
 A teammate built a second, separate pipeline to cross-check the result: `step01_ingest` → `step02_preprocess` → `step03_features` → `step04_train_evaluate` → `step05_predict_submit`. It uses its own loader (`loadBuildingData`), preprocessor (`fitPreprocessor` / `applyPreprocessor`), model comparison (`crossValidateModels`, `trainCandidate`) and exporter (`exportBuildingSubmission`), with unit tests in `tests/` (6/6 pass: `runtests('tests')`). Its design is documented in [docs/STEP_ARCHITECTURE.md](docs/STEP_ARCHITECTURE.md).

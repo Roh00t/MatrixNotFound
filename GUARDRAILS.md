@@ -32,7 +32,10 @@ Enforced by `src/writeSubmission.m` and `main.m`. A run that breaks any of these
 ## 4. Security and supply chain
 
 - **No secrets in the repository.** No API keys, passwords, tokens or MathWorks credentials in code, commits or notebooks. `.gitignore` excludes local clutter and generated binaries.
-- **No third-party models or code.** We do not download pretrained models or scripts from GitHub or elsewhere. Everything uses MATLAB and the Statistics and Machine Learning Toolbox from MathWorks. This avoids executing untrusted code and keeps the work our own.
+- **No third-party models or code in the ML pipeline.** We do not download pretrained models or scripts from GitHub or elsewhere. All modelling uses MATLAB and the Statistics and Machine Learning Toolbox from MathWorks. This avoids executing untrusted code and keeps the work our own.
+- **One UI-only dependency, pinned.** The 3D simulator loads three.js **0.170.0** from jsDelivr through an import map with an exact version. It only draws the scene. The prediction code (`dashboard/predict.js`) has no dependencies, and the page still works if the CDN is unreachable.
+- **The browser model is verified, not trusted.** `exportModelForWeb` refuses to write `model.js` unless its own tree walk equals MATLAB's `predict()`, and `tests/web/checkPredict.mjs` re-checks the JavaScript against MATLAB.
+- **3D assets are AI-generated.** The Hive and The Arc models were generated with Meshy AI from images and are labelled as such in the simulator. The 245 MB original export is gitignored; only decimated copies are committed.
 - **No network access at runtime.** The pipeline reads only the local `data/` folder and writes only to `results/`, `figures/` and `submission.csv`.
 - **Read-only inputs.** Source CSVs are never modified.
 

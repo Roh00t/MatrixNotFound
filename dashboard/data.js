@@ -8,39 +8,34 @@ window.DASHBOARD = {
     "testRows": 9705,
     "predictors": 62
   },
-  "headline": {
-    "bestModel": "LSBoost v3 (feature selection)",
-    "bestRMSE": 40.122702074480131,
-    "baselineRMSE": 61.022223472396092,
-    "improvementPct": 34.249032907445645,
-    "kfoldRMSE": 50.28737344607358,
-    "kfoldOptimism": 10.734850026322512,
-    "oofRMSE": 40.122702074480131,
-    "radarBuildings": 22449,
-    "radarFlagged": 1316,
-    "radarFlaggedPct": 5.8621764889304639,
-    "shortlistGWh": 1572.81114698548
-  },
+  "years": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
   "modelTable": [
     {
       "Model": "Regression tree (baseline)",
       "LOYO_RMSE": 61.022223472396092,
-      "CV_Runtime_min": 1.2391024506944446
+      "CV_Runtime_min": 1.2500342229166668
     },
     {
       "Model": "LSBoost v1 (initial)",
       "LOYO_RMSE": 41.056059853939963,
-      "CV_Runtime_min": 9.5586574798611128
+      "CV_Runtime_min": 9.1465501909722224
     },
     {
       "Model": "LSBoost v2 (shrinkage)",
       "LOYO_RMSE": 41.848673686602034,
-      "CV_Runtime_min": 3.9610512868055556
+      "CV_Runtime_min": 3.924975392361111
     },
     {
       "Model": "LSBoost v3 (feature selection)",
       "LOYO_RMSE": 40.122702074480131,
-      "CV_Runtime_min": 6.5497049409722221
+      "CV_Runtime_min": 6.8515921493055556
     }
   ],
   "perYear": [
@@ -77,14 +72,19 @@ window.DASHBOARD = {
       41.314206649994766
     ]
   ],
-  "years": [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6"
-  ],
+  "headline": {
+    "bestModel": "LSBoost v3 (feature selection)",
+    "bestRMSE": 40.122702074480131,
+    "baselineRMSE": 61.022223472396092,
+    "improvementPct": 34.249032907445645,
+    "kfoldRMSE": 50.28737344607358,
+    "kfoldOptimism": 10.734850026322512,
+    "oofRMSE": 40.122702074480131,
+    "radarBuildings": 22449,
+    "radarFlagged": 1316,
+    "radarFlaggedPct": 5.8621764889304639,
+    "shortlistGWh": 1572.81114698548
+  },
   "validationGap": [
     {
       "Scheme": "Random 5-fold",
@@ -745,7 +745,7 @@ window.DASHBOARD = {
     "rows": 9705,
     "min": 0,
     "median": 64.7506121658962,
-    "max": 650.586231661434,
+    "max": 650.58623166143389,
     "binEdges": [
       0,
       25,
@@ -847,5 +847,5 @@ window.DASHBOARD = {
       "us_university_median_eui": 90.798560625
     }
   ],
-  "updated": "2026-10-30 13:41:51"
+  "updated": "2026-10-30 14:08:12"
 };

@@ -38,5 +38,5 @@ We also found **2.4 RMSE of hidden data leakage** in validation: preprocessing h
 - Built a live results dashboard that MATLAB updates while the pipeline runs (each model's score appears as it finishes), plus matrix diagnostics: a prediction-error heatmap, a feature correlation matrix, residuals by year × state, and a state × facility-type map of where buildings use more energy than expected.
 - The pipeline is fully reproducible: a clean-room rerun reproduced our submission byte for byte.
 - Measured accuracy on years the model never saw: MAE 21.0 kBtu/ft²/yr (median building ≈ 75), R² 0.53.
-- Brought it home to campus: an illustrative what-if runs NTU's The Hive and The Arc through the same pipeline.
+- Brought it home to campus: a 3D simulator where you click NTU's The Hive or The Arc and our MATLAB-trained model runs live in the browser (300 trees exported to JavaScript, verified to match MATLAB exactly), predicting energy intensity, annual MWh and average power draw as you change the building.
 

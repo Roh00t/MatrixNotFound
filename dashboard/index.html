@@ -133,7 +133,10 @@
       <h1>Retrofit Radar</h1>
       <p class="sub">Predicting building energy use (site EUI) with MATLAB · Team MatrixNotFound · Learn to Hack: MATLAB Edition 2026</p>
     </div>
-    <span class="pill ${running ? "running" : failed ? "failed" : ""}"><span class="dot"></span>${running ? "Pipeline running" : failed ? "Run failed" : "Run complete"} · ${esc(D.updated)}</span>
+    <span style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <a class="pill" style="background:var(--accent-soft);color:var(--accent);text-decoration:none" href="simulator.html">▶ 3D building simulator</a>
+      <span class="pill ${running ? "running" : failed ? "failed" : ""}"><span class="dot"></span>${running ? "Pipeline running" : failed ? "Run failed" : "Run complete"} · ${esc(D.updated)}</span>
+    </span>
   </header>
   <div class="progress"><div style="width:${running ? pct : 100}%"></div></div>
   <div class="stage">${esc(D.stage || "")}${running ? " · this page refreshes automatically" : ""}</div>`;

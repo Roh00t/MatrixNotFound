@@ -4,7 +4,9 @@
 
 We predict a building's **site energy use intensity** (`site_eui`) from its type, size, age and local climate using the WiDS Datathon 2022 data. Then we use those predictions to find the buildings that use the most energy beyond what similar buildings use. Those are the buildings an organisation should audit and retrofit first.
 
-**Start here:** open [`dashboard/index.html`](dashboard/index.html) for the interactive results page, or [`ProjectReport.html`](ProjectReport.html) for the full written walkthrough.
+**Start here:** open [`dashboard/index.html`](dashboard/index.html) for the interactive results page, [`dashboard/simulator.html`](dashboard/simulator.html) for the **3D building simulator**, or [`ProjectReport.html`](ProjectReport.html) for the full written walkthrough.
+
+**3D simulator:** click NTU's The Hive or The Arc in 3D and our trained model runs **in your browser**: the 300-tree LSBoost ensemble is exported from MATLAB to JavaScript. Change floor area, age, Energy Star rating or climate and the predicted energy intensity, annual MWh and average power draw (kW) update instantly. A Node.js check confirms the browser model matches MATLAB's `predict()` exactly (difference 0 on 500 test rows and 9 full-pipeline scenarios).
 
 ![Retrofit Radar](figures/5_retrofit_radar.png)
 
@@ -58,6 +60,16 @@ main            % full pipeline, ~25-35 min; open dashboard/index.html to watch 
 ProjectReport   % walkthrough of the saved results, seconds
 ```
 
+To refresh the 3D simulator's model after `main` (about 1 minute, no retraining), then check it against MATLAB:
+
+```matlab
+run tools/buildSimulator.m
+```
+
+```bash
+node tests/web/checkPredict.mjs
+```
+
 `main.m` writes:
 - `submission.csv`
 - `results/retrofit_shortlist.csv`
@@ -73,7 +85,8 @@ The seed is fixed with `rng(42)`. More detail is in [SETUP.md](SETUP.md).
 | Path | Contents |
 | --- | --- |
 | `main.m`, `src/` | **Official pipeline** (entry point and functions) |
-| `dashboard/` | Interactive results page |
+| `dashboard/` | Interactive results page and 3D simulator (`simulator.html`, `predict.js`, `model.js`, `models/`) |
+| `tools/` | `buildSimulator.m` (web model export), `prepare_models.py` (Blender: shrink the 3D models) |
 | `ProjectReport.m` / `.html` | Live-script report (our written demo) |
 | `figures/`, `results/` | Figures and Retrofit Radar shortlist |
 | `submission.csv` | Official test-set predictions |

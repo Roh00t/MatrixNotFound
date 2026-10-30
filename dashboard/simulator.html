@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building Energy Simulator</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --panel: #ffffff; --ink: #14202e; --muted: #5b6b7d; --line: #dde3ea;
+    --accent: #d9541e; --accent-soft: #fbe3d8; --good: #1f7a4d; --good-soft: #dcf1e6;
+    --blue: #2f6db0; --blue-soft: #dde9f6; --track: #eef1f5; --shadow: 0 1px 3px rgba(20,32,46,.08);
+    --sky-top: #cfe3f5; --sky-bottom: #f4f8fc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1620; --panel: #172230; --ink: #e8eef5; --muted: #9aabbd; --line: #2a3a4c;
+      --accent: #f07a45; --accent-soft: #3b2418; --good: #4cc38a; --good-soft: #17352a;
+      --blue: #6ea6e6; --blue-soft: #1a2c42; --track: #223142; --shadow: none;
+      --sky-top: #1b2b40; --sky-bottom: #0f1620;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1620; --panel: #172230; --ink: #e8eef5; --muted: #9aabbd; --line: #2a3a4c;
+    --accent: #f07a45; --accent-soft: #3b2418; --good: #4cc38a; --good-soft: #17352a;
+    --blue: #6ea6e6; --blue-soft: #1a2c42; --track: #223142; --shadow: none;
+    --sky-top: #1b2b40; --sky-bottom: #0f1620;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 20px; margin-bottom: 14px; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
+  .sub { margin: 2px 0 0; color: var(--muted); }
+  a { color: var(--blue); }
+  .layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .stage { position: relative; height: 600px; align-self: start; border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+           background: linear-gradient(var(--sky-top), var(--sky-bottom)); box-shadow: var(--shadow); }
+  @media (max-width: 900px) { .stage { height: 380px; } }
+  canvas { display: block; width: 100%; height: 100%; position: absolute; inset: 0; cursor: grab; }
+  canvas.pointer { cursor: pointer; }
+  .label { position: absolute; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap;
+           background: rgba(20,32,46,.82); color: #fff; font-size: 12.5px; font-weight: 600;
+           padding: 3px 9px; border-radius: 999px; }
+  .label.selected { background: var(--accent); }
+  .hint { position: absolute; left: 12px; bottom: 10px; font-size: 12.5px; color: var(--muted);
+          background: color-mix(in srgb, var(--panel) 80%, transparent); padding: 4px 10px; border-radius: 8px; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+  .fallback { position: absolute; inset: 0; display: none; padding: 20px; gap: 14px;
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); align-content: center; }
+  .fallback button { font: inherit; text-align: left; padding: 18px; border-radius: 12px; border: 1px solid var(--line);
+                     background: var(--panel); color: var(--ink); cursor: pointer; }
+  .fallback button strong { display: block; font-size: 18px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+  .panel h2 { margin: 0 0 2px; font-size: 20px; }
+  .muted { color: var(--muted); font-size: 13.5px; }
+  .field { display: grid; gap: 4px; margin-top: 12px; }
+  .field label { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+  .field output { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  select, input[type=number] { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line);
+                               background: var(--panel); color: var(--ink); width: 100%; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  button.run { margin-top: 16px; width: 100%; font: inherit; font-weight: 700; padding: 11px; border: 0; border-radius: 10px;
+               background: var(--accent); color: #fff; cursor: pointer; }
+  button.run:disabled { opacity: .6; cursor: progress; }
+  .progress { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 10px; visibility: hidden; }
+  .progress div { height: 100%; width: 0; background: var(--accent); }
+  .results { margin-top: 16px; display: none; }
+  .big { font-size: 40px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .unit { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .stat { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 12.5px; color: var(--muted); }
+  .peer { margin-top: 14px; }
+  .peerbar { position: relative; height: 12px; border-radius: 6px; margin: 8px 0 4px;
+             background: linear-gradient(90deg, #2f6db0, #e9eef3 50%, #c0392b); }
+  .peerbar .mark { position: absolute; top: -5px; width: 4px; height: 22px; border-radius: 2px; background: var(--ink); transform: translateX(-50%); }
+  .peerbar .med { position: absolute; top: -2px; width: 2px; height: 16px; background: rgba(0,0,0,.35); left: 50%; }
+  .peerlabels { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+  .verdict { margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-weight: 600; display: none; }
+  .verdict.over { background: var(--accent-soft); color: var(--accent); }
+  .verdict.ok { background: var(--good-soft); color: var(--good); }
+  .note { margin-top: 14px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+  .empty { color: var(--muted); padding: 30px 6px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Building Energy Simulator</h1>
+      <p class="sub">Click a building. Our trained MATLAB model (LSBoost, 300 trees) runs right here in your browser.</p>
+    </div>
+    <a href="index.html">← Results dashboard</a>
+  </header>
+
+  <div class="layout">
+    <div class="stage" id="stage">
+      <div class="loading" id="loading">Loading 3D buildings…</div>
+      <div class="fallback" id="fallback"></div>
+      <div class="hint" id="hint">Drag to orbit · scroll to zoom · click a building</div>
+    </div>
+
+    <aside class="panel" id="panel">
+      <div class="empty" id="empty">
+        <strong>Select a building</strong><br>Click The Hive or The Arc to load it into the model.
+      </div>
+      <div id="form" hidden>
+        <h2 id="bName">–</h2>
+        <div class="muted" id="bMeta"></div>
+
+        <div class="field"><label for="facility">Facility type</label><select id="facility"></select></div>
+        <div class="field"><label for="bclass">Building class</label>
+          <select id="bclass"><option>Commercial</option><option>Residential</option></select></div>
+        <div class="field"><label for="state">Climate (training state)</label><select id="state"></select></div>
+        <div class="field"><label for="area">Floor area <output id="areaOut"></output></label>
+          <input type="range" id="area" min="10000" max="1000000" step="5000"></div>
+        <div class="field"><label for="year">Year built <output id="yearOut"></output></label>
+          <input type="range" id="year" min="1900" max="2025" step="1"></div>
+        <div class="field"><label for="star">Energy Star rating <output id="starOut"></output></label>
+          <input type="range" id="star" min="1" max="100" step="1">
+          <span class="row"><input type="checkbox" id="starUnknown"><label for="starUnknown">Unknown (use facility-type median)</label></span></div>
+
+        <button class="run" id="run" type="button">Run model</button>
+        <div class="progress" id="progress"><div></div></div>
+        <div class="muted" id="status" style="margin-top:6px"></div>
+
+        <div class="results" id="results">
+          <div class="big"><span id="eui">–</span> <span class="unit">kBtu/ft²/yr predicted energy intensity</span></div>
+          <div class="stats">
+            <div class="stat"><div class="v" id="kw">–</div><div class="l">average power draw (kW)</div></div>
+            <div class="stat"><div class="v" id="mwh">–</div><div class="l">energy per year (MWh)</div></div>
+          </div>
+          <div class="peer">
+            <div class="muted" id="peerText"></div>
+            <div class="peerbar"><div class="med"></div><div class="mark" id="peerMark"></div></div>
+            <div class="peerlabels"><span>most efficient peers</span><span>median</span><span>most intensive</span></div>
+          </div>
+          <div class="field"><label for="metered">Metered EUI, if known (kBtu/ft²/yr)</label>
+            <input type="number" id="metered" min="0" step="1" placeholder="e.g. 140"></div>
+          <div class="verdict" id="verdict"></div>
+        </div>
+
+        <p class="note">Illustrative what-if. 3D models are AI-generated (Meshy) and floor areas are estimates. The model was trained on anonymised US buildings, so climate comes from a training state (the default is the hottest, the closest analogue to Singapore). Average power = predicted annual site energy ÷ 8,760 h, covering all fuels.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="model.js"></script>
+<script src="predict.js"></script>
+<script src="models/hive.js"></script>
+<script src="models/arc.js"></script>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+const model = window.EUIPredict.create(window.EUI_MODEL);
+const $ = (id) => document.getElementById(id);
+const pretty = (s) => String(s).replace(/_/g, " ");
+const fmt = (x, d = 0) => Number(x).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+
+// --- Panel setup -------------------------------------------------------------
+$("facility").innerHTML = model.facilities.map((f) => `<option value="${f}">${pretty(f)}</option>`).join("");
+$("state").innerHTML = model.states.map((s) =>
+  `<option value="${s.name}">${s.label} · ${fmt(s.coolingDegreeDays)} cooling degree days</option>`).join("");
+
+let selected = null, hasRun = false;
+const scene3d = { tint: () => {}, scan: () => Promise.resolve(), select: () => {} };
+
+function inputs() {
+  return {
+    facility: $("facility").value, buildingClass: $("bclass").value, state: $("state").value,
+    floorArea: Number($("area").value), yearBuilt: Number($("year").value),
+    energyStar: $("starUnknown").checked ? null : Number($("star").value)
+  };
+}
+
+function syncOutputs() {
+  $("areaOut").textContent = `${fmt($("area").value)} ft²`;
+  $("yearOut").textContent = $("year").value;
+  $("star").disabled = $("starUnknown").checked;
+  $("starOut").textContent = $("starUnknown").checked ? "unknown" : $("star").value;
+}
+
+function selectBuilding(id) {
+  const b = model.buildings.find((x) => x.id === id);
+  if (!b) return;
+  selected = b; hasRun = false;
+  $("empty").hidden = true; $("form").hidden = false; $("results").style.display = "none";
+  $("bName").textContent = b.name;
+  $("bMeta").textContent = `Completed ${b.yearBuilt} · ~${fmt(b.floorArea)} ft² (estimate) · NTU, Singapore`;
+  $("facility").value = b.facility; $("bclass").value = "Commercial"; $("state").value = b.state;
+  $("area").value = b.floorArea; $("year").value = b.yearBuilt;
+  $("star").value = 50; $("starUnknown").checked = true; $("metered").value = "";
+  $("status").textContent = "";
+  syncOutputs();
+  scene3d.select(id);
+}
+
+function showResult() {
+  const r = model.predict(inputs());
+  $("eui").textContent = fmt(r.eui, 1);
+  $("kw").textContent = fmt(r.averageKW);
+  $("mwh").textContent = fmt(r.annualMWh);
+  $("peerMark").style.left = `${Math.min(Math.max(r.peerPercentile, 2), 98)}%`;
+  $("peerText").textContent = `Higher than ~${r.peerPercentile}% of ${fmt(r.peerCount)} ${pretty($("facility").value).toLowerCase()} buildings in the training data (their median: ${fmt(r.peerMedianEUI, 1)}).`;
+  const metered = Number($("metered").value);
+  const v = $("verdict");
+  if ($("metered").value !== "" && metered > 0) {
+    const gap = 100 * (metered - r.eui) / r.eui;
+    v.className = "verdict " + (gap >= 20 ? "over" : "ok");
+    v.textContent = gap >= 20
+      ? `Retrofit Radar: ${fmt(gap)}% above expected, so this is an audit candidate.`
+      : gap >= 0 ? `Within ${fmt(gap)}% of expected, in line with similar buildings.`
+                 : `${fmt(-gap)}% below expected, performing better than similar buildings.`;
+    v.style.display = "block";
+  } else v.style.display = "none";
+  $("results").style.display = "block";
+  scene3d.tint(selected.id, r.peerPercentile / 100);
+  return r;
+}
+
+async function runModel() {
+  if (!selected) return;
+  const btn = $("run"), bar = $("progress"), fill = bar.firstElementChild;
+  btn.disabled = true; bar.style.visibility = "visible"; fill.style.width = "0%";
+  $("status").textContent = `Evaluating ${model.nTrees} regression trees…`;
+  const started = performance.now();
+  await Promise.all([
+    scene3d.scan(selected.id, 1200),
+    new Promise((resolve) => {
+      const tick = () => { const p = Math.min((performance.now() - started) / 1200, 1);
+        fill.style.width = `${p * 100}%`; p < 1 ? requestAnimationFrame(tick) : resolve(); };
+      tick();
+    })
+  ]);
+  const t0 = performance.now(); const r = showResult(); const ms = performance.now() - t0;
+  $("status").textContent = `Model ran in ${ms.toFixed(1)} ms in your browser: ${fmt(r.eui, 1)} kBtu/ft²/yr.`;
+  bar.style.visibility = "hidden"; btn.disabled = false; hasRun = true;
+}
+
+for (const id of ["facility", "bclass", "state", "area", "year", "star", "starUnknown", "metered"]) {
+  $(id).addEventListener("input", () => { syncOutputs(); if (hasRun) showResult(); });
+}
+$("run").addEventListener("click", runModel);
+
+// --- 3D scene (falls back to cards if three.js or WebGL is unavailable) ------
+function showFallback(reason) {
+  $("loading").style.display = "none"; $("hint").textContent = reason;
+  const fb = $("fallback"); fb.style.display = "grid";
+  fb.innerHTML = model.buildings.map((b) =>
+    `<button type="button" data-id="${b.id}"><strong>${b.name}</strong>Completed ${b.yearBuilt} · ~${fmt(b.floorArea)} ft²<br><span class="muted">Click to load into the model</span></button>`).join("");
+  fb.querySelectorAll("button").forEach((el) => el.addEventListener("click", () => selectBuilding(el.dataset.id)));
+}
+
+function base64ToBuffer(b64) {
+  const bin = atob(b64), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes.buffer;
+}
+
+async function start3D() {
+  const THREE = await import("three");
+  const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+  const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
+
+  const stage = $("stage");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  stage.prepend(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+  camera.position.set(0, 5.5, 13);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 1.4, 0); controls.enableDamping = true;
+  controls.maxPolarAngle = Math.PI * 0.49; controls.minDistance = 5; controls.maxDistance = 30;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a9bb0, 1.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(6, 10, 7); scene.add(sun);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(11, 64),
+    new THREE.MeshStandardMaterial({ color: 0xc9d4c3, roughness: 1 }));
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+
+  const loader = new GLTFLoader();
+  const buildings = {};
+  const placements = { hive: -3.4, arc: 3.4 };
+  for (const b of model.buildings) {
+    const gltf = await new Promise((resolve, reject) =>
+      loader.parse(base64ToBuffer(window.BUILDING_MODELS[b.id]), "", resolve, reject));
+    const obj = gltf.scene;
+    const box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3());
+    const scale = 4.4 / Math.max(size.x, size.y, size.z);
+    obj.scale.setScalar(scale);
+    const scaled = new THREE.Box3().setFromObject(obj), center = scaled.getCenter(new THREE.Vector3());
+    obj.position.x += (placements[b.id] ?? 0) - center.x;
+    obj.position.z += -center.z;
+    obj.position.y += -scaled.min.y;
+    const materials = [];
+    obj.traverse((m) => { if (m.isMesh) { m.material = m.material.clone(); materials.push(m.material); m.userData.buildingId = b.id; } });
+    scene.add(obj);
+    const top = new THREE.Box3().setFromObject(obj);
+    const label = document.createElement("div"); label.className = "label"; label.textContent = b.name; stage.appendChild(label);
+    buildings[b.id] = { obj, materials, box: top, label, tint: null, hover: false };
+  }
+  $("loading").style.display = "none";
+
+  // Scan ring used while the model runs.
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.03, 8, 96),
+    new THREE.MeshBasicMaterial({ color: 0xff7a3d, transparent: true, opacity: 0.9 }));
+  ring.rotation.x = Math.PI / 2; ring.visible = false; scene.add(ring);
+  let scanning = null;
+
+  const colorFor = (p) => new THREE.Color().lerpColors(new THREE.Color(0x2f6db0), new THREE.Color(0xc0392b), p);
+  function applyLook(id) {
+    const b = buildings[id];
+    const color = b.tint ?? new THREE.Color(0x000000);
+    const intensity = b.tint ? 0.45 : (b.hover ? 0.18 : 0);
+    for (const mat of b.materials) {
+      mat.emissive = b.hover && !b.tint ? new THREE.Color(0xffffff) : color;
+      mat.emissiveIntensity = intensity;
+    }
+  }
+
+  scene3d.tint = (id, p) => { buildings[id].tint = colorFor(p); applyLook(id); };
+  scene3d.select = (id) => {
+    for (const [k, b] of Object.entries(buildings)) {
+      b.label.classList.toggle("selected", k === id); b.tint = null; applyLook(k);
+    }
+  };
+  scene3d.scan = (id, ms) => new Promise((resolve) => {
+    const b = buildings[id].box, c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+    ring.scale.setScalar(Math.max(s.x, s.z) * 0.62); ring.position.set(c.x, b.min.y, c.z); ring.visible = true;
+    scanning = { b, start: performance.now(), ms, resolve };
+  });
+
+  // Picking.
+  const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
+  const pick = (event) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
+    const hit = raycaster.intersectObjects(Object.values(buildings).map((b) => b.obj), true)[0];
+    return hit ? hit.object.userData.buildingId : null;
+  };
+  renderer.domElement.addEventListener("pointermove", (e) => {
+    const id = pick(e);
+    renderer.domElement.classList.toggle("pointer", !!id);
+    for (const [k, b] of Object.entries(buildings)) { const h = k === id; if (b.hover !== h) { b.hover = h; applyLook(k); } }
+  });
+  let downAt = null;
+  renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener("pointerup", (e) => {
+    if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 6) {
+      const id = pick(e); if (id) selectBuilding(id);
+    }
+  });
+
+  // Frame both buildings for the current aspect ratio.
+  const sceneBox = new THREE.Box3();
+  Object.values(buildings).forEach((b) => sceneBox.union(b.box));
+  function frame() {
+    const size = sceneBox.getSize(new THREE.Vector3()), center = sceneBox.getCenter(new THREE.Vector3());
+    const vfov = THREE.MathUtils.degToRad(camera.fov), hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
+    const dist = 1.25 * Math.max(size.x / 2 / Math.tan(hfov / 2), size.y / 2 / Math.tan(vfov / 2)) + size.z / 2;
+    controls.target.copy(center);
+    camera.position.copy(center).add(new THREE.Vector3(0, 0.38, 1).normalize().multiplyScalar(dist));
+    controls.update();
+  }
+
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    frame();
+  }
+  new ResizeObserver(resize).observe(stage); resize();
+
+  const v = new THREE.Vector3();
+  renderer.setAnimationLoop(() => {
+    controls.update();
+    if (scanning) {
+      const p = Math.min((performance.now() - scanning.start) / scanning.ms, 1);
+      ring.position.y = scanning.b.min.y + p * (scanning.b.max.y - scanning.b.min.y);
+      ring.material.opacity = 0.9 * (1 - p * 0.6);
+      if (p >= 1) { ring.visible = false; const done = scanning.resolve; scanning = null; done(); }
+    }
+    for (const b of Object.values(buildings)) {
+      v.set((b.box.min.x + b.box.max.x) / 2, b.box.max.y + 0.25, (b.box.min.z + b.box.max.z) / 2).project(camera);
+      b.label.style.left = `${(v.x * 0.5 + 0.5) * stage.clientWidth}px`;
+      b.label.style.top = `${(-v.y * 0.5 + 0.5) * stage.clientHeight}px`;
+      b.label.style.display = v.z < 1 ? "block" : "none";
+    }
+    renderer.render(scene, camera);
+  });
+}
+
+syncOutputs();
+
+// The panel and model work immediately; the 3D scene attaches when it has
+// loaded (three.js from the CDN plus decoding the building models).
+start3D().then(() => {
+  if (selected) {
+    scene3d.select(selected.id);
+    if (hasRun) showResult();               // re-apply the tint to the 3D model
+  }
+}).catch((err) => {
+  console.warn("3D view unavailable:", err);
+  showFallback("3D view unavailable (offline or no WebGL). The model still runs: pick a building.");
+});
+
+// Deep link for demos and tests: simulator.html#select=hive or #select=arc&run
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.get("select")) { selectBuilding(hash.get("select")); if (hash.has("run")) runModel(); }
+</script>
+</body>
+</html>

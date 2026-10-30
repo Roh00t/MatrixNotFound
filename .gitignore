@@ -6,3 +6,8 @@
 /artifacts/
 assets/3d/Meshy_AI_NTU_The_Arc_Building_1030055149_image-to-3d-texture.glb
 assets/3d/Meshy_AI_The_Hive_Building_3D_1030054134_texture.glb
+
+# Original Meshy 3D exports (one is 245 MB, over GitHub's limit) and the
+# intermediate decimated GLBs; the simulator loads dashboard/models/*.js
+assets/3d/*.glb
+dashboard/models/*.glb
