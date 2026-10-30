@@ -1,6 +1,6 @@
 # Building energy prediction: implementation pipeline
 
-Developer specification, 30 October 2026. Start with [architecture.md](architecture.md)
+Developer specification, 30 October 2026. Start with [architecture.md](docs/STEP_ARCHITECTURE.md)
 for module contracts and [docs/RESOURCES.md](docs/RESOURCES.md) for references.
 Only ingestion is implemented today; model code below is illustrative design,
 not an already executable end-to-end system. No measured model score exists yet.

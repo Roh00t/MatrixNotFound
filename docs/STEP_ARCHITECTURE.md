@@ -1,8 +1,8 @@
 # Architecture and developer contracts
 
 This is the target architecture, not a claim that every listed module exists.
-See [docs/STATUS.md](docs/STATUS.md) for current implementation status and
-[pipeline.md](pipeline.md) for the modeling decisions.
+See [docs/STATUS.md](STATUS.md) for current implementation status and
+[pipeline.md](../pipeline.md) for the modeling decisions.
 
 ## Data flow
 
