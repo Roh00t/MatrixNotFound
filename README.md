@@ -2,6 +2,11 @@
 
 **Team MatrixNotFound** (Rohit, Matt, Shuan) · Learn to Hack: MATLAB Edition 2026
 
+**Project guide:** [Start here](docs/START_HERE.md) explains the run commands,
+the three experiment families, and which outputs belong to each model.
+The completed [three-model comparison](release/three_model_experiment/README.md)
+has stable metrics, chart, and JSON paths for presentation/UI work.
+
 We predict a building's **site energy use intensity** (`site_eui`) from its type, size, age and local climate using the WiDS Datathon 2022 data. Then we use those predictions to find the buildings that use the most energy beyond what similar buildings use. Those are the buildings an organisation should audit and retrofit first.
 
 **Start here:** open [`dashboard/index.html`](dashboard/index.html) for the interactive results page, [`dashboard/simulator.html`](dashboard/simulator.html) for the **3D building simulator**, or [`ProjectReport.html`](ProjectReport.html) for the full written walkthrough.
@@ -43,7 +48,7 @@ Leave-one-year-out cross-validation (LOYO): hold out one whole year, train on th
    - `energy_star_rating` is filled by facility-type median, and other gaps by the overall median.
    - `<name>_missing` flags record where data was absent.
    - All statistics come from training rows only.
-3. **Engineer** (`src/engineerFeatures.m`): building age, floor area × heating and cooling degree days (seasonal thermal load), and Energy Star × floor area. Four of these rank in the model's top 9 predictors.
+3. **Engineer** (`src/engineerLegacyFeatures.m`): building age, floor area × heating and cooling degree days (seasonal thermal load), and Energy Star × floor area. The independent step pipeline uses `src/engineerFeatures.m` with a different schema; these functions are not interchangeable.
 4. **Select** (`src/trainModels.m`): a regression tree baseline and three LSBoost iterations, scored by LOYO. Preprocessing is refit inside every fold, and failures fall back to the next-best model.
 5. **Submit** (`src/writeSubmission.m`): finite, non-negative predictions, checked as exactly 9,705 × 2 `id,site_eui`, with ids matched to the sample solution.
 6. **Act** (`src/retrofitRadar.m`, `src/makeFigures.m`, `src/makeHeatmaps.m`, `src/makeIterationFigures.m`, `src/computeExtendedMetrics.m`, `src/simulateNTULandmarks.m`): actual vs expected EUI for the latest year ranked by excess MWh per year, extended accuracy metrics, an NTU what-if, and twelve figures.
@@ -90,7 +95,7 @@ The seed is fixed with `rng(42)`. More detail is in [SETUP.md](SETUP.md).
 | `ProjectReport.m` / `.html` | Live-script report (our written demo) |
 | `figures/`, `results/` | Figures and Retrofit Radar shortlist |
 | `submission.csv` | Official test-set predictions |
-| `step01`–`step05_*.m`, `tests/`, `release/` | Independent cross-check pipeline, its unit tests (6/6 pass) and outputs; see [docs/RESULTS.md](docs/RESULTS.md) |
+| `step01`–`step08_*.m`, `tests/`, `release/` | Cross-check pipeline, diagnostics, controlled three-model experiment, and backend tests; run `run_project_tests` |
 | `docs/` | Team plan, presentation brief, cross-check architecture, status, resources |
 | `DEVPOST_DRAFT.md` | Devpost submission text |
 | `data/` | WiDS Datathon 2022 train/test/sample files |

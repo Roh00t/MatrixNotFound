@@ -1,7 +1,7 @@
 %% Capture the diagnostics export exception without the unit-test wrapper
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(fullfile(projectDir,'src'));
-outputDir = fullfile(projectDir,'results','export_debug');
+outputDir = fullfile(projectDir,'artifacts','debug','export_debug');
 if ~isfolder(outputDir), mkdir(outputDir); end
 logPath = fullfile(outputDir,'diagnostic_error.txt');
 fid = fopen(logPath,'w');

@@ -1,5 +1,9 @@
 # Cross-check run package (step pipeline)
 
+The newer controlled comparison is packaged separately in
+[three_model_experiment/](three_model_experiment/README.md). Do not mix its scores
+with the original Bag results below. See [Start here](../docs/START_HERE.md).
+
 These are the outputs of the team's **independent cross-check pipeline**
 (`step01`–`step05`, bagged trees). The **official submission is
 `../submission.csv`**, produced by `main.m` (LSBoost v3, leave-one-year-out

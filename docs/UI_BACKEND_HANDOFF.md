@@ -8,9 +8,15 @@ Integration repairs: main.m now retains the newer dashboard/heatmap flow while
 calling engineerLegacyFeatures explicitly for both prepared tables. The NTU
 scenario uses that same explicit feature function. The refreshed upstream README
 and status are retained; conflicting step-pipeline drafts are preserved under
-docs/merge_recovery. The demo accepts the new crosscheck_bag_submission.csv name.
+docs/archive/merge_recovery. The demo accepts the new crosscheck_bag_submission.csv name.
 New diagnostics tests and PNG generation remain pending in the licensed MATLAB
 session; existing LOYO figures and scores were inspected, not rerun here.
+
+Update: the controlled three-model experiment completed in the user's MATLAB
+session, including all six diagnostic folders. Stable copies are now under
+release/three_model_experiment/; use metrics.csv for its comparison table and each
+model's oof/ or latest_year/validation_summary.json for chart data. These use
+SourceRow, not Row. The other experiment families remain separate.
 
 ## Two experiment families must stay distinct
 
