@@ -27,6 +27,15 @@ function submission = writeSubmission(model, testTbl, testIds, outFile)
     submission = table(testIds, siteEUI, VariableNames=["id", "site_eui"]);
     writetable(submission, outFile);
 
+    % Read the file back to confirm what was actually written to disk.
+    expectedRows = 9705;   % rows in the WiDS 2022 test set
+    written = readtable(outFile);
+    assert(height(written) == expectedRows && width(written) == 2, ...
+        "writeSubmission:badShape", "%s must be %d rows x 2 columns, got %d x %d.", ...
+        outFile, expectedRows, height(written), width(written));
+    assert(isequal(written.Properties.VariableNames, {'id', 'site_eui'}), ...
+        "writeSubmission:badHeader", "%s must have columns id and site_eui.", outFile);
+
     fprintf("Wrote %d predictions to %s (site_eui range %.1f to %.1f)\n", ...
         height(submission), outFile, min(siteEUI), max(siteEUI));
 end

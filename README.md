@@ -1,48 +1,62 @@
-<td>
-<img src="/Images/Hackathons Banner.jpg" style="width:1275px;height:158.25px">
-</td>
+# Retrofit Radar: Predicting Building Energy Consumption with MATLAB
 
-# Predict Building Energy Consumption with MATLAB&reg;
-This repository contains code and instructions enable you to develop an algorithm that can predict how much energy a building will consume based on building characteristics, weather data for it's location, and more. Work like this can help determine which buildings are using and maybe wasting the most energy, which could be great candidates for retrofitting.
+**Team MatrixNotFound** · Learn to Hack: MATLAB Edition 2026
 
-Click here to open the code and repository in MATLAB Online&trade;:
+We predict a building's **site energy use intensity** (`site_eui`) from its type, size, age and local climate using the WiDS Datathon 2022 data. Then we use those predictions to find the buildings that use the most energy beyond what similar buildings use. Those are the buildings an organisation should audit and retrofit first.
 
-[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=mathworks/predicting-building-energy-consumption)
+![Retrofit Radar](figures/5_retrofit_radar.png)
 
-## Pre-work
-We recommend participants complete the following before the event if they are not familiar with these topics:
-* [MATLAB Onramp](https://matlabacademy.mathworks.com/details/matlab-onramp/gettingstarted)
-* [Machine Learning Onramp](https://matlabacademy.mathworks.com/details/machine-learning-onramp/machinelearning)
+## Results
 
-## Files### Building Regression Models.m
-The code tutorial that will explain how to access the challenge dataset and how to get started on developing and presenting your own algorithms to predict building energy consumption. 
+Leave-one-year-out cross-validation (LOYO): hold out one whole year, train on the other five, repeat for all six years. This mirrors the test set, which is a single year never seen in training.
 
-### exampleTrain.zip
-The dummy dataset used in Building Regression Models.mlx, zipped into a compressed folder. To use this dataset, you must first extract the .CSV file from the folder.
+{{RESULTS_TABLE}}
 
-### Scoring Rubric.pdf
-Contains the scoring rubric that will be used by the judges to score your submission. 
+**Selected model:** {{BEST_MODEL}}, refit on all 75,757 training rows to predict the 9,705 test buildings (`submission.csv`).
 
-### Instructions & Challenge Overview.pdf
-Explains the challenge and provides some additional resources for the hackathon.
+**Why not random k-fold?** For the baseline tree, random 5-fold CV reports RMSE {{KFOLD}} against {{LOYO_TREE}} under LOYO. Random folds mix years, and the same building appears in several years, so they flatter the model.
 
-**Copyright 2025-2026 The MathWorks, Inc.**
+## How it works
 
-## Run the MATLAB prediction pipeline
+1. **Load** (`src/loadData.m`): typed `readtable`, categorical predictors, and the same category levels for train and test.
+2. **Clean** (`src/preprocessData.m`):
+   - `year_built = 0` is treated as missing.
+   - `energy_star_rating` is filled by facility-type median, and other gaps by the overall median.
+   - `<name>_missing` flags record where data was absent.
+   - All statistics come from training rows only.
+3. **Engineer** (`src/engineerFeatures.m`): building age, floor area × heating and cooling degree days (seasonal thermal load), and Energy Star × floor area.
+4. **Select** (`src/trainModels.m`): a regression tree baseline and three LSBoost iterations, scored by LOYO. Preprocessing is refit inside every fold.
+5. **Submit** (`src/writeSubmission.m`): finite, non-negative predictions, checked as exactly 9,705 × 2 `id,site_eui`, with ids matched to the sample solution.
+6. **Act** (`src/retrofitRadar.m`): actual vs expected EUI for the latest year, ranked by excess MWh per year, saved to `results/retrofit_shortlist.csv`.
 
-The end-to-end pipeline is in [`main.m`](./main.m), with data loading,
-preprocessing, feature engineering, model selection, and submission writing
-modularized under [`src/`](./src). It requires MATLAB and the Statistics and
-Machine Learning Toolbox.
+Details and diagrams: [ARCHITECTURE.md](ARCHITECTURE.md). Integrity, security and responsible-use rules: [GUARDRAILS.md](GUARDRAILS.md).
 
-1. Make sure `data/train.csv` and `data/test.csv` are present.
-2. Open the repository root in MATLAB and run `main.m`.
-3. Review the printed Leave-One-Year-Out and random 5-fold RMSE results.
-4. Find the generated `submission.csv` in the repository root.
+## Run it
 
-The script uses a fixed random seed. Imputation and feature engineering are
-fit separately inside each validation fold; final imputation statistics are
-learned from the complete training set and reused unchanged for the test set.
-`Year_Factor` is converted to a numeric value so the model can handle the
-test-only year. The submission writer checks prediction finiteness and row
-counts before writing `id,site_eui`.
+Requires MATLAB (R2024b or newer) and the **Statistics and Machine Learning Toolbox**.
+
+```matlab
+main            % full pipeline, ~35 min (mostly LSBoost cross-validation)
+ProjectReport   % walkthrough of the saved results, seconds
+```
+
+`main.m` writes `submission.csv`, `results/retrofit_shortlist.csv`, `figures/*.png` and `results/pipelineResults.mat`. The seed is fixed with `rng(42)`.
+
+## Repository
+
+| Path | Contents |
+| --- | --- |
+| `main.m` | Entry point |
+| `src/` | Pipeline functions (one responsibility each) |
+| `ProjectReport.m` / `ProjectReport.html` | Live-script report (our written demo) |
+| `figures/` | Presentation figures |
+| `results/retrofit_shortlist.csv` | Top 50 retrofit candidates |
+| `submission.csv` | Test-set predictions |
+| `data/` | WiDS Datathon 2022 train/test/sample files |
+| `BuildingRegressionModels.m`, PDFs | MathWorks starter material |
+
+## Credits
+
+- Data: [WiDS Datathon 2022](https://www.kaggle.com/competitions/widsdatathon2022), provided by the hackathon organisers.
+- Starter material: Copyright 2025-2026 The MathWorks, Inc. (see `license.txt`).
+- Team: Rohit, Matt, Shuan.
