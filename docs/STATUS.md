@@ -7,16 +7,31 @@ Updated 30 October 2026 during the developer handoff.
 | Starter review | BuildingRegressionModels.m and README reviewed |
 | Local data audit | Row counts, columns, blank counts and year-factor shift inspected |
 | Step 1 ingestion | Existing step01_ingest.m and src/loadBuildingData.m present |
-| Ingestion runtime check | Blocked: MATLAB batch startup reports MathWorks services error 5201; ingestion has not been runtime-verified |
-| Year metadata preservation | Planned; current loader makes unseen test year 7 undefined |
-| Preprocessing/features | Specified, not implemented |
-| Training/evaluation/tuning | Specified, not implemented; no measured RMSE |
-| Final model/submission | Not generated |
+| Ingestion runtime check | Passed in the user's MATLAB desktop session: 75,757 training rows, 9,705 test rows, 62 predictors |
+| Year metadata preservation | Implemented as optional seventh loader output; categorical year excluded from Step 2 model inputs |
+| Preprocessing | Passed in the user's desktop session: all rows retained, 122 model inputs, completion checks passed; unit tests not yet verified |
+| Feature engineering | Passed in user's desktop session: five added features, 127 model inputs |
+| Training/evaluation | Passed in user's MATLAB session; saved CSV confirms Bag OOF RMSE 42.2018, temporal RMSE 41.5379; LSBoost OOF 41.8071, temporal 45.0487 |
+| Tuning | Planned after initial model scores |
+| Final model/submission | Passed in user's MATLAB session in 262.6 seconds; final model saved, 9,705 predictions, bundle reload and CSV checks passed |
 | Presentation | Storyboard and design specification written; rendered deck not created |
 
 Do not treat documentation snippets as finished executable modules. The current
-priority is a successful ingestion run and the explicit year handling described
-in pipeline.md, followed by the preprocessing and baseline gates.
+priority is publishing the checked release package and preparing the presentation.
+Bag was selected for its stronger later-year validation score.
+
+Packaging review: release/submission.csv and release/model_comparison.csv copy the
+completed run outputs. IDs, schema, row counts and prediction finiteness were
+independently checked; SHA-256 manifest saved. Large model stays local. README
+now describes the evaluated step pipeline; alternate draft retained separately.
+
+Integration note: teammate updates introduced conflict markers in engineerFeatures.m
+and .gitignore. Both feature implementations were preserved: numeric Year_Factor
+inputs dispatch to engineerLegacyFeatures.m for the teammate pipeline, while the
+Step 2 cleaned inputs use the five evaluated features. The teammate's calendar
+mapping assumption is preserved only in that legacy function, not used in Step 5.
+Git conflict index entries still require review/staging by the team; no merge or
+teammate deletion was committed as part of Step 5.
 
 Runtime attempt: MATLAB R2026b with a workspace-local preferences directory;
 batch command changed into this repository, ran step01_ingest, and would have

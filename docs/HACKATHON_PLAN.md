@@ -1,17 +1,16 @@
 # Hackathon execution and definition of done
 
 Deadline supplied in the briefing: **30 October 2026, 4:00 PM,
-Asia/Kuala_Lumpur**. The fourth member was not named; assign that owner at kickoff.
+Asia/Kuala_Lumpur**. The team has three members: Rohit, Matt, and Shuan.
 This schedule is a proposed team plan, not an automated reminder or submission.
 
 ## Ownership
 
 | Owner | Scope | Handoff evidence |
 | --- | --- | --- |
-| Rohit | Architecture, interfaces, pipeline integration, final fit/export | Clean run, saved bundle, validated submission |
-| Matt | Dictionary audit, missingness, feature hypotheses, model comparisons | Data audit, experiment log, random/temporal metrics |
-| Shuan | Glassmorphism slides, narrative, demo recording | Deck/PDF and timed demo under five minutes |
-| Fourth member, assign | Tests, integration support, repository/Devpost packaging | Independent clean run and verified public links |
+| Rohit | Architecture, interfaces, pipeline integration, final fit/export, GitHub publishing | Clean run, saved bundle, validated submission, pushed code |
+| Matt | Dictionary audit, missingness, feature hypotheses, model comparisons, independent clean-run and CSV checks | Data audit, experiment log, random/temporal metrics, verification results |
+| Shuan | Glassmorphism slides, narrative, demo recording, Devpost packaging and public-link checks | Deck/PDF, timed demo under five minutes, reviewed submission links |
 
 These are human team assignments, not messages sent to members or delegated agent
 tasks. Developers should read pipeline.md and architecture.md before parallel work.

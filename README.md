@@ -1,79 +1,91 @@
-# Retrofit Radar: Predicting Building Energy Consumption with MATLAB
+# Retrofit Radar — Team MatrixNotFound
 
-# Predict Building Energy Consumption with MATLAB&reg;
+MATLAB regression pipeline for WiDS Datathon 2022 building energy intensity
+(`site_eui`). Team: Rohit, Matt, Shuan.
 
-## Team developer handoff
+## Completed results
 
-Start here: [Pipeline deep dive](pipeline.md) · [Architecture and function contracts](architecture.md)
-· [Resources](docs/RESOURCES.md) · [Execution plan](docs/HACKATHON_PLAN.md)
-· [Glassmorphism presentation brief](docs/PRESENTATION.md) · [Implementation status](docs/STATUS.md).
+The step-by-step pipeline ran successfully in MATLAB R2026b with Statistics
+and Machine Learning Toolbox. It trained on 75,757 labeled buildings and
+exported predictions for 9,705 test buildings. Final fitting and export took
+262.6 seconds in the recorded run.
 
-The repository currently implements Step 1 ingestion. Training, evaluation,
-prediction and export are specified in the handoff and still need development.
-No model accuracy score or completed submission is claimed.
+| Model | Five-fold OOF RMSE | Later-year RMSE |
+| --- | ---: | ---: |
+| Mean | 58.2554 | 57.2064 |
+| Tree | 45.2569 | 44.8910 |
+| Bag (selected) | 42.2018 | 41.5379 |
+| LSBoost | 41.8071 | 45.0487 |
 
-Run `step01_ingest` from this repository in MATLAB to load the supplied data.
-The data includes a year-factor shift from training years 1–6 to test year 7;
-read the pipeline's year-handling policy before building models.
+Lower RMSE is better. OOF means every training row was predicted by a model
+that did not learn from its target. The temporal check fits years 1–5 and
+validates on year factor 6; test data is entirely year factor 7. Bagging was
+selected for its stronger temporal result. These are validation scores, not
+accuracy measured on the unlabeled test data. The temporal score informed
+selection and is not an untouched final-test estimate.
 
-This repository contains code and instructions enable you to develop an algorithm that can predict how much energy a building will consume based on building characteristics, weather data for it's location, and more. Work like this can help determine which buildings are using and maybe wasting the most energy, which could be great candidates for retrofitting.
-**Team MatrixNotFound** · Learn to Hack: MATLAB Edition 2026
+## Ready-to-use files
 
-We predict a building's **site energy use intensity** (`site_eui`) from its type, size, age and local climate using the WiDS Datathon 2022 data. Then we use those predictions to find the buildings that use the most energy beyond what similar buildings use. Those are the buildings an organisation should audit and retrofit first.
+- [Final submission](release/submission.csv): exactly `id,site_eui`, 9,705 rows.
+- [Model comparison](release/model_comparison.csv): full-precision measured scores.
+- [Manifest](release/manifest.csv): SHA-256 hashes, sizes and artifact paths.
+- [Release instructions](release/README.md): local model location and demo commands.
+- [Results narrative](docs/RESULTS.md): evidence and limitations for the presentation.
 
-![Retrofit Radar](figures/5_retrofit_radar.png)
+The saved model remains under local `artifacts/`; it is about 135 MB and is
+excluded from Git. Reproduce it with Step 5 or distribute it separately when
+needed. No competition upload or Devpost submission has been performed here.
 
-## Results
+## Run the verified workflow
 
-Leave-one-year-out cross-validation (LOYO): hold out one whole year, train on the other five, repeat for all six years. This mirrors the test set, which is a single year never seen in training.
-
-{{RESULTS_TABLE}}
-
-**Selected model:** {{BEST_MODEL}}, refit on all 75,757 training rows to predict the 9,705 test buildings (`submission.csv`).
-
-**Why not random k-fold?** For the baseline tree, random 5-fold CV reports RMSE {{KFOLD}} against {{LOYO_TREE}} under LOYO. Random folds mix years, and the same building appears in several years, so they flatter the model.
-
-## How it works
-
-1. **Load** (`src/loadData.m`): typed `readtable`, categorical predictors, and the same category levels for train and test.
-2. **Clean** (`src/preprocessData.m`):
-   - `year_built = 0` is treated as missing.
-   - `energy_star_rating` is filled by facility-type median, and other gaps by the overall median.
-   - `<name>_missing` flags record where data was absent.
-   - All statistics come from training rows only.
-3. **Engineer** (`src/engineerFeatures.m`): building age, floor area × heating and cooling degree days (seasonal thermal load), and Energy Star × floor area.
-4. **Select** (`src/trainModels.m`): a regression tree baseline and three LSBoost iterations, scored by LOYO. Preprocessing is refit inside every fold.
-5. **Submit** (`src/writeSubmission.m`): finite, non-negative predictions, checked as exactly 9,705 × 2 `id,site_eui`, with ids matched to the sample solution.
-6. **Act** (`src/retrofitRadar.m`): actual vs expected EUI for the latest year, ranked by excess MWh per year, saved to `results/retrofit_shortlist.csv`.
-
-Details and diagrams: [ARCHITECTURE.md](ARCHITECTURE.md). Integrity, security and responsible-use rules: [GUARDRAILS.md](GUARDRAILS.md).
-
-## Run it
-
-Requires MATLAB (R2024b or newer) and the **Statistics and Machine Learning Toolbox**.
+Open MATLAB in this repository folder. Run saved scripts by name:
 
 ```matlab
-main            % full pipeline, ~35 min (mostly LSBoost cross-validation)
-ProjectReport   % walkthrough of the saved results, seconds
+step01_ingest            % load and inspect data
+step02_preprocess        % preview fitted cleaning
+step03_features          % preview five engineered features
+step04_train_evaluate    % five-fold comparison and temporal check
+step05_predict_submit    % refit Bag and export; does not rerun CV
 ```
 
-`main.m` writes `submission.csv`, `results/retrofit_shortlist.csv`, `figures/*.png` and `results/pipelineResults.mat`. The seed is fixed with `rng(42)`.
+Each later step loads what it needs; earlier workspace variables are not required.
+Step 4 took approximately 13 minutes for random-fold model fits in the recorded
+run, plus cleaning and temporal validation. Runtime varies by machine. Step 5
+prints the precise new folder containing `submission.csv` and `final_bundle.mat`.
+Run `results = runtests('tests'); assertSuccess(results)` for function tests;
+these tests have not yet been verified in the team's MATLAB session.
 
-## Repository
+## How the evaluated pipeline works
 
-| Path | Contents |
-| --- | --- |
-| `main.m` | Entry point |
-| `src/` | Pipeline functions (one responsibility each) |
-| `ProjectReport.m` / `ProjectReport.html` | Live-script report (our written demo) |
-| `figures/` | Presentation figures |
-| `results/retrofit_shortlist.csv` | Top 50 retrofit candidates |
-| `submission.csv` | Test-set predictions |
-| `data/` | WiDS Datathon 2022 train/test/sample files |
-| `BuildingRegressionModels.m`, PDFs | MathWorks starter material |
+Training-only facility medians fill energy ratings, with an overall fallback;
+numeric medians fill other missing values. Missing/unknown flags preserve absence.
+Nonpositive construction years are treated as missing. Cleaning is fitted
+separately in every validation split. The unseen categorical Year_Factor is
+excluded from model inputs; raw year codes remain available for temporal splits.
 
-## Credits
+Five extra features represent log area, area × heating/cooling degree days,
+total degree days, and the heating fraction. Native categorical predictors and
+200 bagged trees form the final model. Outputs are clipped to nonnegative values,
+as during validation. Model serialization and CSV round-trip checks passed in
+the completed Step 5 run; the packaged CSV was independently checked again.
 
-- Data: [WiDS Datathon 2022](https://www.kaggle.com/competitions/widsdatathon2022), provided by the hackathon organisers.
-- Starter material: Copyright 2025-2026 The MathWorks, Inc. (see `license.txt`).
-- Team: Rohit, Matt, Shuan.
+Unverified calendar-year mapping and wind conventions are not assumed in this
+workflow. Features are hypotheses: their separate accuracy contribution was not
+measured through ablations. Predictions support further investigation, not
+causal claims or proven retrofit savings.
+
+## Other team work and references
+
+`main.m`, `ProjectReport.m` and related functions are a separate teammate workflow.
+They are preserved, but their LOYO scores and retrofit outputs were not validated
+by the completed step-by-step run above. Numeric-year inputs to engineerFeatures
+use the preserved engineerLegacyFeatures implementation; cleaned step-pipeline
+inputs use the five evaluated features. The former README draft is retained in
+[docs/ALTERNATE_README_DRAFT.md](docs/ALTERNATE_README_DRAFT.md).
+
+Developer references: [Pipeline](pipeline.md), [Architecture](architecture.md),
+[Resources](docs/RESOURCES.md), [Presentation brief](docs/PRESENTATION.md),
+[Hackathon plan](docs/HACKATHON_PLAN.md), [Status](docs/STATUS.md).
+Starter: `BuildingRegressionModels.m`; dataset: WiDS Datathon 2022 supplied by
+organizers. Retain `LICENSE` and `license.txt` and verify dataset redistribution
+conditions. Model-estimated high intensity is not evidence of energy waste.

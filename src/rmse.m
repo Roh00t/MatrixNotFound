@@ -1,0 +1,9 @@
+function score = rmse(actual, predicted)
+%RMSE Original-scale root mean squared error; never discard failed predictions.
+assert(isnumeric(actual) && isnumeric(predicted) && iscolumn(actual) && ...
+    iscolumn(predicted) && ~isempty(actual) && isequal(size(actual),size(predicted)), ...
+    'BuildingEnergy:MetricShape', 'RMSE requires matching nonempty numeric columns.');
+assert(all(isfinite(actual)) && all(isfinite(predicted)), ...
+    'BuildingEnergy:MetricFinite', 'RMSE inputs must be finite.');
+score = sqrt(mean((double(actual)-double(predicted)).^2));
+end
