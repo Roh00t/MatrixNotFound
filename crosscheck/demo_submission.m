@@ -1,6 +1,6 @@
 %% Quick judging demo: inspect saved evidence without retraining
 % Uses the packaged step-pipeline outputs, not alternate workflow results.
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 submissionFile = fullfile(projectDir,'release','crosscheck_bag_submission.csv');
 if ~isfile(submissionFile)
     submissionFile = fullfile(projectDir,'release','submission.csv');

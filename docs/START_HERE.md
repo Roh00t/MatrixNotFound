@@ -3,7 +3,8 @@
 ## Open the project
 
 In MATLAB, set the current folder to the repository root. This is the folder
-containing main.m, run_project_tests.m, data/, src/ and dashboard/.
+containing main.m, crosscheck/, data/, src/ and dashboard/. The cross-check
+scripts live in crosscheck/; run them from the root with `run crosscheck/<name>.m`.
 
 The active UI is dashboard/index.html; the simulator is dashboard/simulator.html.
 The demo deck is presentation/MatrixNotFound_Hackathon_Presentation.pptx (PDF
@@ -14,25 +15,26 @@ and simulator.
 
 | Goal | Command or file | Retrains? |
 | --- | --- | --- |
-| Check backend tests and show bagging cross-check evidence | run_project_tests | Small synthetic fits only |
-| Show packaged bagging metrics and predictions | demo_submission | No |
+| Check backend tests and show bagging cross-check evidence | run crosscheck/run_project_tests.m | Small synthetic fits only |
+| Show packaged bagging metrics and predictions | run crosscheck/demo_submission.m | No |
 | Run the official LOYO/LSBoost pipeline | main | Yes, full data |
 | Read the official report | ProjectReport.html | No |
-| Refit the earlier bagging model and export | step05_predict_submit | Yes, one final fit |
-| Recompute earlier bagging metrics from saved predictions | step06_metrics | No |
-| Export earlier bagging diagnostics from saved predictions | step07_diagnostics | No |
-| Rerun all/selected/tree/boost comparison | step08_compare_three_models | Yes, validation fits |
+| Refit the earlier bagging model and export | run crosscheck/step05_predict_submit.m | Yes, one final fit |
+| Recompute earlier bagging metrics from saved predictions | run crosscheck/step06_metrics.m | No |
+| Export earlier bagging diagnostics from saved predictions | run crosscheck/step07_diagnostics.m | No |
+| Rerun all/selected/tree/boost comparison | run crosscheck/step08_compare_three_models.m | Yes, validation fits |
 | Browse the completed three-model results | ../release/three_model_experiment/ | No |
 
 Steps 01–03 load, clean and engineer preview data. Step 04 validates the original
-cross-check candidates. Scripts remain in the root so familiar commands keep working.
+cross-check candidates. The scripts live in `crosscheck/` and locate the repository
+root themselves, so they run correctly from anywhere with `run crosscheck/<name>.m`.
 No need to run training to rehearse a presentation or inspect the completed results.
 
 ## Three experiment families
 
 | Experiment | Selected/best model | Validation evidence | Submission |
 | --- | --- | --- | --- |
-| Official pipeline | LSBoost v3 | Recorded pooled LOYO RMSE 40.1227 | Root submission.csv |
+| Official pipeline | LSBoost v3 | Recorded pooled LOYO RMSE 40.1227 | results/submission.csv |
 | Original cross-check | Bag, 200 trees | OOF RMSE 42.2018; year-6 RMSE 41.5379 | release/crosscheck_bag_submission.csv |
 | Controlled three-model comparison | Model 3, selected factors + LSBoost | OOF RMSE 41.1704; year-6 RMSE 42.9221 | No replacement submission generated |
 

@@ -2,6 +2,7 @@
 
 ## Try it out
 
+- **Demo video (YouTube):** https://youtu.be/bKo0Yp50wDo
 - **Live site (GitHub Pages):** https://roh00t.github.io/MatrixNotFound/ (landing page linking to all three pages)
   - Results dashboard: https://roh00t.github.io/MatrixNotFound/dashboard/
   - 3D building simulator: https://roh00t.github.io/MatrixNotFound/dashboard/simulator.html
@@ -19,7 +20,7 @@ Buildings account for a large share of energy use and carbon emissions, but orga
 
 ## What it does
 
-- Predicts a building's **site energy use intensity** (`site_eui`, kBtu/ft²/yr) from its characteristics and local climate, trained on 75,757 building-years from the WiDS Datathon 2022 data, and predicts all 9,705 test buildings (`submission.csv`).
+- Predicts a building's **site energy use intensity** (`site_eui`, kBtu/ft²/yr) from its characteristics and local climate, trained on 75,757 building-years from the WiDS Datathon 2022 data, and predicts all 9,705 test buildings (`results/submission.csv`).
 - Powers **Retrofit Radar**: it compares each building's actual energy use with what the model expects for similar buildings, and ranks them by excess energy. In the latest year, **1,316 of 22,449 buildings** use at least 50% more energy than expected, and the top 50 account for **1,573 GWh/yr** of excess use.
 - Ships three pages:
   - an **interactive results dashboard** that updates live while the MATLAB pipeline runs

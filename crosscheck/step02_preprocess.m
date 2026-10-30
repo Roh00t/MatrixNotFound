@@ -1,6 +1,6 @@
 %% STEP 2: Learn and apply missing-value cleaning
 % Run this saved script by name from MATLAB, as with step01_ingest.
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir, 'src'));
 if ~exist('dataDir', 'var')
     dataDir = fullfile(projectDir, 'data');

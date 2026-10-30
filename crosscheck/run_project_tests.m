@@ -1,5 +1,5 @@
 %% Run project tests using absolute paths, regardless of the current folder
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 testDir = fullfile(projectDir,'tests');
 assert(isfolder(testDir),'BuildingEnergy:MissingTests', ...
     'Test folder not found: %s. Use the latest project files.',testDir);
@@ -12,4 +12,4 @@ testResults = run(suite);
 disp(testResults);
 assertSuccess(testResults);
 fprintf('All project tests passed. Running the saved-output demo.\n');
-run(fullfile(projectDir,'demo_submission.m'));
+run(fullfile(projectDir,'crosscheck','demo_submission.m'));

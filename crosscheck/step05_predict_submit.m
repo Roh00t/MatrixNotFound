@@ -1,7 +1,7 @@
 %% STEP 5: Fit the selected bagging model and create a validated submission
 % Runs independently of previous workspace variables. Does not rerun CV.
 % Uses the same 200-tree bagging specification evaluated in Step 4.
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir,'src'));
 assert(~isempty(which('fitrensemble')), 'BuildingEnergy:ToolboxRequired', ...
     'Statistics and Machine Learning Toolbox is required.');

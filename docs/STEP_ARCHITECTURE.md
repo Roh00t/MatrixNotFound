@@ -36,7 +36,7 @@ Temporal validation uses the same fit/apply path with a different split.
 ## File layout
 
 ```text
-step01_ingest.m                 existing beginner entry point
+crosscheck/step01_ingest.m      existing beginner entry point
 run_pipeline.m                 planned complete entry point
 config/defaultConfig.m         planned central configuration
 src/loadBuildingData.m         existing CSV loader

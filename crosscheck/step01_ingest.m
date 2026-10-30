@@ -1,5 +1,5 @@
 %% STEP 1: Load and inspect the building data
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir,'src'));
 if ~exist('dataDir','var')
     dataDir = fullfile(projectDir,'data');

@@ -1,8 +1,8 @@
 %% STEP 3: Add useful building and weather clues
 % Run this saved script by name. It runs Step 2 first for a reproducible preview.
 % Original CSVs are never modified. No model is trained in this step.
-projectDir = fileparts(mfilename('fullpath'));
-run(fullfile(projectDir, 'step02_preprocess.m'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
+run(fullfile(projectDir, 'crosscheck', 'step02_preprocess.m'));
 
 [XTrainFeatures, trainFeatureReport] = engineerFeatures(XTrainClean);
 [XTestFeatures, testFeatureReport] = engineerFeatures(XTestClean);

@@ -6,8 +6,11 @@ We predict a building's **site energy use intensity** (`site_eui`) from its type
 
 ## Start here
 
+**Live site:** https://roh00t.github.io/MatrixNotFound/ · **Demo video:** https://youtu.be/bKo0Yp50wDo
+
 | Open | What you get |
 | --- | --- |
+| [**Demo video (YouTube)**](https://youtu.be/bKo0Yp50wDo) | **5-minute presentation and live demo** |
 | [`dashboard/index.html`](dashboard/index.html) | **Interactive results**: hover and toggle charts, a filterable retrofit shortlist, and the figure gallery. It updates live while `main.m` runs |
 | [`dashboard/simulator.html`](dashboard/simulator.html) | **3D building simulator**: click NTU's The Hive or The Arc and our trained model runs **in your browser**, with live response curves |
 | [`ProjectReport.html`](ProjectReport.html) | **Written walkthrough**: a MATLAB live script exported to HTML, with every figure |
@@ -28,14 +31,14 @@ Leave-one-year-out cross-validation (LOYO): hold out one whole year, train on th
 | LSBoost v2 | Shrinkage: LR 0.05, 400 trees, min leaf 50, binning | 41.85 |
 | **LSBoost v3** | **Feature selection: drop 36 monthly temperature columns** | **40.12** |
 
-- **Official submission:** [`submission.csv`](submission.csv) from LSBoost v3, refit on all 75,757 training rows to predict the 9,705 test buildings. Boosting cut error by 34% compared with a single tree, and v3 was the best model in 5 of 6 held-out years.
+- **Official submission:** [`results/submission.csv`](results/submission.csv) from LSBoost v3, refit on all 75,757 training rows to predict the 9,705 test buildings. Boosting cut error by 34% compared with a single tree, and v3 was the best model in 5 of 6 held-out years.
 - **Accuracy on unseen years (out-of-fold, v3):** MAE 21.0, median absolute error 12.6, RMSE 40.1, R² 0.53 (median building EUI ≈ 75 kBtu/ft²/yr). See [`results/extended_metrics.csv`](results/extended_metrics.csv).
 - **Why not random k-fold?** For the baseline tree, random 5-fold CV reports RMSE 50.29 against 61.02 under LOYO. Random folds mix years, and the same building appears in several years, so they understate the error by 10.7.
 - **Leakage check:** fitting preprocessing inside each fold, instead of once on all the data, raised the tree's honest error from 58.6 to 61.0. The earlier number was flattered by leakage.
 - **Independent cross-check:** a teammate's separate pipeline (bagged trees) scores 41.54 on the same year-6 holdout where ours scores 41.31. Two independent implementations agree within 0.25 RMSE.
 - **Retrofit Radar:** 1,316 of 22,449 buildings in the latest year (6%) use at least 50% more energy than the model expects. The top 50 account for 1,573 GWh/yr of excess use ([`results/retrofit_shortlist.csv`](results/retrofit_shortlist.csv)).
 - **Local what-if:** NTU's The Hive and The Arc, run through the same pipeline in the hottest training climate, come out at about 109 and 102 kBtu/ft²/yr. This is an illustration, with estimated floor areas ([`figures/ntu_landmarks.png`](figures/ntu_landmarks.png)).
-- **Reproducible:** a clean-room rerun from an empty output folder reproduced `submission.csv` byte for byte.
+- **Reproducible:** a clean-room rerun from an empty output folder reproduced `results/submission.csv` byte for byte.
 
 | | |
 | --- | --- |
@@ -78,7 +81,7 @@ node tests/web/checkPredict.mjs
 ```
 
 `main.m` writes:
-- `submission.csv`
+- `results/submission.csv`
 - `results/retrofit_shortlist.csv`
 - `figures/*.png`
 - `dashboard/data.js`
@@ -96,8 +99,8 @@ The seed is fixed with `rng(42)`. More detail is in [docs/SETUP.md](docs/SETUP.m
 | `tools/` | `buildSimulator.m` (web model export), `prepare_models.py` (Blender: shrink the 3D models) |
 | `ProjectReport.m` / `.html` | Live-script report (our written demo) |
 | `figures/`, `results/` | Figures and Retrofit Radar shortlist |
-| `submission.csv` | Official test-set predictions |
-| `step01`–`step08_*.m`, `tests/`, `release/` | Cross-check pipeline, diagnostics, controlled three-model experiment, and backend tests; run `run_project_tests` |
+| `results/` | Official `submission.csv`, Retrofit Radar shortlist, extended metrics, NTU what-if, LOYO diagnostics |
+| `crosscheck/`, `tests/`, `release/` | Independent cross-check pipeline (`step01`–`step08`), diagnostics, controlled three-model experiment and backend tests; run `run crosscheck/run_project_tests.m` |
 | `docs/` | Start here, presentation brief, Devpost draft, setup, metrics, cross-check architecture, status (`archive/` = earlier planning notes) |
 | `presentation/` | Demo deck (`MatrixNotFound_Hackathon_Presentation.pptx` / `.pdf`, with speaker notes) |
 | `docs/DEVPOST_DRAFT.md` | Devpost submission text |

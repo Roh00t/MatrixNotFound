@@ -1,7 +1,7 @@
 %% Metrics and predicted-versus-actual graphs without retraining
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir,'src'));
-run(fullfile(projectDir,'step06_metrics.m')); % checks prediction provenance
+run(fullfile(projectDir,'crosscheck','step06_metrics.m')); % checks prediction provenance
 diagnosticsDir = fullfile(evaluationDir,'diagnostics');
 oofSummary = exportValidationDiagnostics(oof.actual,oof.Bag_prediction, ...
     fullfile(diagnosticsDir,'bag_oof'),'Model','Bag','Validation','Five-fold OOF');

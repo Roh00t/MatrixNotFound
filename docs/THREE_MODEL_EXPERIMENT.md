@@ -18,7 +18,7 @@ experiment, making the feature reduction easy to explain. Cleaning is learned
 from each training split separately; both selected models receive identical
 prepared matrices. Nonnegative clipping matches the existing pipeline policy.
 
-Run `step08_compare_three_models`. It creates a unique artifacts folder and
+Run `crosscheck/step08_compare_three_models.m` from the repository root. It creates a unique artifacts folder and
 compares the models on five shared random folds and an earlier-years-to-latest-year
 holdout. The two trees use MinLeafSize=20 and MaxNumSplits=100. LSBoost uses
 300 cycles, learning rate 0.05 and the existing shallow-tree template. Only the

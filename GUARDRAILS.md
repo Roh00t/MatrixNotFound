@@ -18,7 +18,7 @@ Rules this project follows to keep results trustworthy, the repository safe and 
 ## 2. Submission integrity
 
 - Predictions must be finite. Energy use cannot be negative, so predictions are clamped at 0.
-- `submission.csv` is read back from disk and must be exactly **9,705 rows × 2 columns** (`id`, `site_eui`).
+- `results/submission.csv` is read back from disk and must be exactly **9,705 rows × 2 columns** (`id`, `site_eui`).
 - Submission ids must match `data/sample_solution.csv` exactly and in order.
 
 Enforced by `src/writeSubmission.m` and `main.m`. A run that breaks any of these stops with an error instead of writing a bad file.
@@ -36,7 +36,7 @@ Enforced by `src/writeSubmission.m` and `main.m`. A run that breaks any of these
 - **One UI-only dependency, pinned.** The 3D simulator loads three.js **0.170.0** from jsDelivr through an import map with an exact version. It only draws the scene. The prediction code (`dashboard/predict.js`) has no dependencies, and the page still works if the CDN is unreachable.
 - **The browser model is verified, not trusted.** `exportModelForWeb` refuses to write `model.js` unless its own tree walk equals MATLAB's `predict()`, and `tests/web/checkPredict.mjs` re-checks the JavaScript against MATLAB.
 - **3D assets are AI-generated.** The Hive and The Arc models were generated with Meshy AI from images and are labelled as such in the simulator. The 245 MB original export is gitignored; only decimated copies are committed.
-- **No network access at runtime.** The pipeline reads only the local `data/` folder and writes only to `results/`, `figures/` and `submission.csv`.
+- **No network access at runtime.** The pipeline reads only the local `data/` folder and writes only to `results/` (including `submission.csv`), `figures/`, `dashboard/` and `ProjectReport.html`.
 - **Read-only inputs.** Source CSVs are never modified.
 
 ## 5. Data licensing and privacy

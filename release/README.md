@@ -6,7 +6,7 @@ with the original Bag results below. See [Start here](../docs/START_HERE.md).
 
 These are the outputs of the team's **independent cross-check pipeline**
 (`step01`–`step05`, bagged trees). The **official submission is
-`../submission.csv`**, produced by `main.m` (LSBoost v3, leave-one-year-out
+`../results/submission.csv`**, produced by `main.m` (LSBoost v3, leave-one-year-out
 RMSE 40.12). On the same year-6 holdout, the two pipelines score 41.31
 (official) and 41.54 (this Bag model).
 
@@ -23,7 +23,7 @@ verify functionality and format; test labels are unavailable for accuracy scorin
 The local saved model is:
 `artifacts/tp6fdff950_4339_476b_a3ac_2b3dcd686e45/final_bundle.mat`.
 Keep this file safe. It is about 135 MB and is not included in ordinary Git commits.
-Without it, run `step05_predict_submit` to reproduce a new model and submission.
+Without it, run `crosscheck/step05_predict_submit.m` to reproduce a new model and submission.
 
 ## Demo without retraining
 

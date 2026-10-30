@@ -2,7 +2,7 @@
 % This can take a while: 18 nontrivial fits (3 models x 6 splits).
 % Progress is printed after each fit and saved after every completed fold.
 % Do NOT use the full-training cleaned preview tables from Steps 2/3 here.
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir,'src'));
 assert(~isempty(which('fitrensemble')) && ~isempty(which('cvpartition')), ...
     'BuildingEnergy:ToolboxRequired', ...

@@ -19,7 +19,7 @@ flowchart TD
     C --> CV
     CV --> H[compare LOYO RMSE,<br/>refit best on all rows,<br/>compact]
     B --> I[preprocessData + engineerFeatures<br/>fit on all train, apply to test]
-    H --> J[writeSubmission<br/>submission.csv]
+    H --> J[writeSubmission<br/>results/submission.csv]
     I --> J
     H --> K[retrofitRadar<br/>results/retrofit_shortlist.csv]
     H --> L[makeFigures + makeHeatmaps<br/>figures/*.png]
@@ -89,7 +89,7 @@ What we learned:
 
 | Path | Produced by | Committed |
 | --- | --- | --- |
-| `submission.csv` | `writeSubmission` | yes |
+| `results/submission.csv` | `writeSubmission` | yes |
 | `results/retrofit_shortlist.csv` | `retrofitRadar` | yes |
 | `figures/1-5_*.png` | `makeFigures` | yes |
 | `figures/6-9_*.png` | `makeHeatmaps` | yes |
@@ -118,11 +118,11 @@ Outputs shown: predicted EUI, annual MWh (EUI × area × 0.293 kWh/kBtu), averag
 
 ## Independent cross-check pipeline
 
-A teammate built a second, separate pipeline to cross-check the result: `step01_ingest` → `step02_preprocess` → `step03_features` → `step04_train_evaluate` → `step05_predict_submit`. It uses its own loader (`loadBuildingData`), preprocessor (`fitPreprocessor` / `applyPreprocessor`), model comparison (`crossValidateModels`, `trainCandidate`) and exporter (`exportBuildingSubmission`), with unit tests in `tests/` (6/6 pass: `runtests('tests')`). Its design is documented in [docs/STEP_ARCHITECTURE.md](docs/STEP_ARCHITECTURE.md).
+A teammate built a second, separate pipeline to cross-check the result (scripts in `crosscheck/`): `step01_ingest` → `step02_preprocess` → `step03_features` → `step04_train_evaluate` → `step05_predict_submit`. It uses its own loader (`loadBuildingData`), preprocessor (`fitPreprocessor` / `applyPreprocessor`), model comparison (`crossValidateModels`, `trainCandidate`) and exporter (`exportBuildingSubmission`), with unit tests in `tests/` (6/6 pass: `runtests('tests')`). Its design is documented in [docs/STEP_ARCHITECTURE.md](docs/STEP_ARCHITECTURE.md).
 
 It validates with random 5-fold CV plus one temporal check (train on years 1–5, predict year 6), and selects 200 bagged trees. Its outputs are in `release/`: `model_comparison.csv` and `crosscheck_bag_submission.csv`.
 
-On the shared year-6 holdout the two pipelines agree closely: **41.31** (official LSBoost v3) vs **41.54** (cross-check Bag). Two independent implementations landing within 0.25 RMSE is evidence that the result is robust rather than an artefact of one codebase. The official submission is `submission.csv` from `main.m`, because it is validated on all six held-out years rather than one.
+On the shared year-6 holdout the two pipelines agree closely: **41.31** (official LSBoost v3) vs **41.54** (cross-check Bag). Two independent implementations landing within 0.25 RMSE is evidence that the result is robust rather than an artefact of one codebase. The official submission is `results/submission.csv` from `main.m`, because it is validated on all six held-out years rather than one.
 
 ## Related documents
 

@@ -1,7 +1,7 @@
 %% Additional presentation metrics: reuse existing validation predictions
 % No training. Defaults to the completed Step 4 run used for the release.
 % Set evaluationDir explicitly to summarize a different completed run.
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir,'src'));
 if ~exist('evaluationDir','var')
     evaluationDir = fullfile(projectDir,'artifacts', ...

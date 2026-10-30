@@ -3,7 +3,7 @@
 % Model 2: Same Tree settings with the eight approved factors and their flags.
 % Model 3: LSBoost with exactly the same selected inputs as Model 2.
 % All models use the same five folds plus the same latest-year holdout.
-projectDir = fileparts(mfilename('fullpath'));
+projectDir = fileparts(fileparts(mfilename('fullpath')));  % repository root (this script lives in crosscheck/)
 addpath(fullfile(projectDir,'src'));
 if ~exist('dataDir','var'), dataDir = fullfile(projectDir,'data'); end
 [XTrain,yTrain,~,trainID,~,~,yearMetadata] = loadBuildingData(dataDir);

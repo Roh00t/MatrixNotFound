@@ -34,7 +34,7 @@ submission. Label the validation method, model name and row count beside scores.
 
 ## Generate without retraining
 
-Run `step07_diagnostics` for the completed step-pipeline run. It checks source
+Run `crosscheck/step07_diagnostics.m` for the completed step-pipeline run. It checks source
 IDs/targets through Step 6, then exports two independent datasets under the run's
 `diagnostics` directory: `bag_oof` and `bag_latest_year`.
 

@@ -68,11 +68,11 @@ dash = advanceDashboard(dash, dashboardDir, "Step 3 of 6: preparing the test set
 [trainPrepared, testPrepared] = preprocessData(trainTbl, testTbl);
 trainPrepared = engineerLegacyFeatures(trainPrepared);
 testPrepared = engineerLegacyFeatures(testPrepared);
-dash = advanceDashboard(dash, dashboardDir, "Step 4 of 6: writing and checking submission.csv");
+dash = advanceDashboard(dash, dashboardDir, "Step 4 of 6: writing and checking results/submission.csv");
 
 %% Step 5: Predict the test set and write the submission
 submission = writeSubmission(finalModel, testPrepared, testIds, ...
-    fullfile(projectRoot, "submission.csv"));
+    fullfile(resultsDir, "submission.csv"));
 
 sampleSolution = readtable(fullfile(dataDir, "sample_solution.csv"));
 assert(isequal(submission.id, sampleSolution.id), ...
@@ -93,7 +93,7 @@ dash = advanceDashboard(dash, dashboardDir, "Step 5 of 6: Retrofit Radar and fig
 makeFigures(cvReport, finalModel, yTrain, shortlist, figuresDir);
 makeHeatmaps(trainTbl, trainPrepared, yTrain, cvReport.outOfFoldPredictions, radar, figuresDir);
 makeIterationFigures(cvReport, figuresDir);
-makeTestCorrelationHeatmap(dataDir, fullfile(projectRoot, "submission.csv"), figuresDir);
+makeTestCorrelationHeatmap(dataDir, fullfile(resultsDir, "submission.csv"), figuresDir);
 
 % Accuracy beyond RMSE, on out-of-fold predictions (data the model never saw).
 metrics = computeExtendedMetrics(yTrain, cvReport.outOfFoldPredictions);

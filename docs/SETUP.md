@@ -16,7 +16,7 @@ Running `main.m` executes the full pipeline end to end: it loads the data, prepa
 
 ## Outputs
 
-- `submission.csv`: test-set predictions in the competition format (9,705 rows, `id,site_eui`).
+- `results/submission.csv`: test-set predictions in the competition format (9,705 rows, `id,site_eui`).
 - `results/retrofit_shortlist.csv`: the top 50 Retrofit Radar candidates.
 - `figures/*.png`: five presentation figures (RMSE by year, validation gap, predicted vs actual, feature importance, Retrofit Radar).
 - `ProjectReport.html`: the exported live-script report.
