@@ -83,7 +83,7 @@ use the preserved engineerLegacyFeatures implementation; cleaned step-pipeline
 inputs use the five evaluated features. The former README draft is retained in
 [docs/ALTERNATE_README_DRAFT.md](docs/ALTERNATE_README_DRAFT.md).
 
-Developer references: [Pipeline](pipeline.md), [Architecture](architecture.md),
+Developer references: [Pipeline](pipeline.md), [Step architecture](docs/STEP_ARCHITECTURE.md),
 [Resources](docs/RESOURCES.md), [Presentation brief](docs/PRESENTATION.md),
 [Hackathon plan](docs/HACKATHON_PLAN.md), [Status](docs/STATUS.md).
 Starter: `BuildingRegressionModels.m`; dataset: WiDS Datathon 2022 supplied by
