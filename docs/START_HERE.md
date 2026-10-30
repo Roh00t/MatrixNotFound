@@ -6,8 +6,9 @@ In MATLAB, set the current folder to the repository root. This is the folder
 containing main.m, run_project_tests.m, data/, src/ and dashboard/.
 
 The active UI is dashboard/index.html; the simulator is dashboard/simulator.html.
-The separate six-slide draft is presentation/retrofit-radar-ntu.html. These are
-different deliverables. The UI teammate owns the dashboard and simulator.
+The demo deck is presentation/MatrixNotFound_Hackathon_Presentation.pptx (PDF
+export alongside, speaker notes in the .pptx). The UI teammate owns the dashboard
+and simulator.
 
 ## Which workflow should I run?
 

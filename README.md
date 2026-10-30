@@ -99,7 +99,7 @@ The seed is fixed with `rng(42)`. More detail is in [docs/SETUP.md](docs/SETUP.m
 | `submission.csv` | Official test-set predictions |
 | `step01`–`step08_*.m`, `tests/`, `release/` | Cross-check pipeline, diagnostics, controlled three-model experiment, and backend tests; run `run_project_tests` |
 | `docs/` | Start here, presentation brief, Devpost draft, setup, metrics, cross-check architecture, status (`archive/` = earlier planning notes) |
-| `presentation/` | Presentation preview page |
+| `presentation/` | Demo deck (`MatrixNotFound_Hackathon_Presentation.pptx` / `.pdf`, with speaker notes) |
 | `docs/DEVPOST_DRAFT.md` | Devpost submission text |
 | `data/` | WiDS Datathon 2022 train/test/sample files |
 | `starter/` | MathWorks starter material (tutorial script, dummy data, banner) |
