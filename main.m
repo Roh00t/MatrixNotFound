@@ -65,9 +65,8 @@ dash = advanceDashboard(dash, dashboardDir, "Step 3 of 6: preparing the test set
 
 %% Steps 2-3 for the test set: fit on all training rows, apply to test
 [trainPrepared, testPrepared] = preprocessData(trainTbl, testTbl);
-trainPrepared = engineerFeatures(trainPrepared);
-testPrepared  = engineerFeatures(testPrepared);
-
+trainPrepared = engineerLegacyFeatures(trainPrepared);
+testPrepared = engineerLegacyFeatures(testPrepared);
 dash = advanceDashboard(dash, dashboardDir, "Step 4 of 6: writing and checking submission.csv");
 
 %% Step 5: Predict the test set and write the submission
@@ -97,6 +96,9 @@ makeIterationFigures(cvReport, figuresDir);
 % Accuracy beyond RMSE, on out-of-fold predictions (data the model never saw).
 metrics = computeExtendedMetrics(yTrain, cvReport.outOfFoldPredictions);
 writetable(metrics, fullfile(resultsDir, "extended_metrics.csv"));
+exportValidationDiagnostics(yTrain,cvReport.outOfFoldPredictions, ...
+    fullfile(resultsDir,"loyo_diagnostics"), ...
+    'Model',string(cvReport.bestModelName),'Validation','Leave-one-year-out OOF');
 disp(metrics)
 
 % Local what-if: two NTU landmarks run through the same pipeline.

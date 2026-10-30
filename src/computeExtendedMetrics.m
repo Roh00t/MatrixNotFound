@@ -18,14 +18,14 @@ function metrics = computeExtendedMetrics(yTrue, yPred)
         yPred (:,1) double {mustBeEqualSize(yTrue, yPred)}
     end
 
-    residuals = yTrue - yPred;
-    mse = mean(residuals.^2);
-
-    metrics = table( ...
-        mean(abs(residuals)), mse, sqrt(mse), ...
-        1 - sum(residuals.^2) / sum((yTrue - mean(yTrue)).^2), ...
-        median(abs(residuals)), ...
-        VariableNames=["MAE", "MSE", "RMSE", "R2", "MedianAE"]);
+    % Shared checks reject NaN/Inf and empty inputs; constant-target R2 is NaN.
+    core = regressionMetrics(yTrue,yPred);
+    residuals = yTrue-yPred;
+    metrics = core(:,{'MAE','MSE','RMSE','R2'});
+    metrics.MedianAE = median(abs(residuals));
+    metrics.P90AE = prctile(abs(residuals),90);
+    % Positive bias means predictions are too high on average.
+    metrics.MeanBias = mean(yPred-yTrue);
 end
 
 function mustBeEqualSize(a, b)

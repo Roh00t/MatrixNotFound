@@ -205,6 +205,6 @@ end
 function [trainTbl, validationTbl] = preparePredictors(trainTbl, validationTbl)
 %PREPAREPREDICTORS Fit fold-local preprocessing and engineer both partitions.
     [trainTbl, validationTbl] = preprocessData(trainTbl, validationTbl);
-    trainTbl      = engineerFeatures(trainTbl);
-    validationTbl = engineerFeatures(validationTbl);
+    trainTbl      = engineerLegacyFeatures(trainTbl);
+    validationTbl = engineerLegacyFeatures(validationTbl);
 end

@@ -22,14 +22,15 @@ fprintf('Final outputs folder: %s\n',finalOutputDir);
 fprintf('Fitting preprocessing on all %d labeled buildings.\n',height(XTrain));
 preprocessor = fitPreprocessor(XTrain);
 trainingFeatures = engineerFeatures(applyPreprocessor(XTrain,preprocessor));
-config = struct('Seed',2026,'BagCycles',200,'BoostCycles',300, ...
-    'NonnegativePredictions',true);
+config = buildingConfig;
 rng(config.Seed,'twister');
 timer = tic;
 fprintf('Training final Bag model (200 trees). Please leave MATLAB running.\n');
 model = trainCandidate(trainingFeatures,yTrain,"Bag",config);
 bundle = struct;
 bundle.SchemaVersion = 1;
+bundle.Workflow = 'step-pipeline';
+bundle.FeatureVersion = 1;
 bundle.Model = compact(model);
 bundle.ModelName = "Bag";
 bundle.Preprocessor = preprocessor;

@@ -6,11 +6,9 @@ function [features, report] = engineerFeatures(X)
 arguments
     X table
 end
-if ismember('Year_Factor',X.Properties.VariableNames) && isnumeric(X.Year_Factor)
-    features = engineerLegacyFeatures(X);
-    report = table;
-    return;
-end
+assert(~ismember('Year_Factor',X.Properties.VariableNames), ...
+    'BuildingEnergy:UnpreparedFeatures', ...
+    'Use applyPreprocessor first. The alternate main workflow uses engineerLegacyFeatures.');
 required = {'floor_area','heating_degree_days','cooling_degree_days'};
 assert(all(ismember(required, X.Properties.VariableNames)), ...
     'BuildingEnergy:FeatureInputs', ...

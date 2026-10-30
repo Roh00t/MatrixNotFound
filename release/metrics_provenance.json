@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "path": "artifacts/tpb04c481f_0943_4f76_a49d_83570eed28da/oof_predictions.csv",
+      "sha256": "af3ebc9a1bcfa5caa91f3f66f0fbc6cb3b22c6ab3b19026e8d0840fcd47c3c21"
+    },
+    {
+      "path": "artifacts/tpb04c481f_0943_4f76_a49d_83570eed28da/temporal_predictions.csv",
+      "sha256": "317a9cacd36f0a10aedc6eaf4ecc34cb2c78502a94c5f9559285d078106f6dfb"
+    },
+    {
+      "path": "artifacts/tpb04c481f_0943_4f76_a49d_83570eed28da/model_comparison.csv",
+      "sha256": "b878084194ede646f8f5cda38fa04429ee0dde733514aa2bb1f6c19d564e8d92"
+    }
+  ],
+  "r2_definition": "1-SSE/SST; undefined for constant actual targets",
+  "source_targets_and_ids_verified": true,
+  "rmse_agrees_with_recorded_run": true
+}

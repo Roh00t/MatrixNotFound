@@ -62,7 +62,7 @@ function scenario = simulateNTULandmarks(trainTbl, finalModel, yTrain, figuresDi
 
     % --- Same preprocessing and features as the real test set ---------------
     [~, prepared] = preprocessData(trainTbl, buildings);
-    prepared = engineerFeatures(prepared);
+    prepared = engineerLegacyFeatures(prepared);
     predicted = max(predict(finalModel, prepared), 0);
 
     isUniversity = trainTbl.facility_type == facilityType;

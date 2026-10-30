@@ -11,8 +11,7 @@ if ~exist('dataDir','var')
     dataDir = fullfile(projectDir,'data');
 end
 [XTrain,yTrain,~,trainID,~,~,yearMetadata] = loadBuildingData(dataDir);
-config = struct('Seed',2026,'NumFolds',5,'BagCycles',200, ...
-    'BoostCycles',300,'NonnegativePredictions',true);
+config = buildingConfig;
 if ~isfolder(fullfile(projectDir,'artifacts'))
     mkdir(fullfile(projectDir,'artifacts'));
 end
@@ -39,6 +38,8 @@ for candidate = 1:numel(results.Names)
     temporalTable.([name '_prediction']) = results.TemporalPredictions(:,candidate);
 end
 writetable(temporalTable,fullfile(outputDir,'temporal_predictions.csv'));
+metricReport = validationMetricTable(oofTable,temporalTable);
+writetable(metricReport,fullfile(outputDir,'validation_metrics.csv'));
 save(fullfile(outputDir,'evaluation.mat'),'results','trainID','yTrain');
 fprintf('\nStep 4 complete. Lower RMSE is better.\n');
 fprintf('Review BOTH OOF_RMSE and TemporalRMSE before choosing the final model.\n');
