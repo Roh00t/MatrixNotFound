@@ -1,4 +1,4 @@
-function [finalModel, cvReport] = trainModels(X, y)
+function [finalModel, cvReport] = trainModels(X, y, options)
 %TRAINMODELS Compare candidate models with leave-one-year-out CV, fit the best.
 %
 %   [finalModel, cvReport] = TRAINMODELS(X, y) expects the raw predictor
@@ -44,10 +44,15 @@ function [finalModel, cvReport] = trainModels(X, y)
 %     cvReport   - struct with the comparison table, per-year RMSE, the
 %                  random-vs-LOYO evidence for the tree, the winner's name
 %                  and its out-of-fold predictions
+%
+%   [...] = TRAINMODELS(X, y, ProgressFcn=f) calls f(results, perYearRMSE)
+%   after each candidate finishes, with NaN for candidates not yet scored.
+%   main.m uses this to update the live dashboard.
 
     arguments
         X table
         y (:,1) double
+        options.ProgressFcn function_handle = @(results, perYearRMSE) []
     end
 
     candidates = struct( ...
@@ -79,6 +84,8 @@ function [finalModel, cvReport] = trainModels(X, y)
                 "%s failed and is excluded: %s", candidates(m).name, err.message);
         end
         runtimeMin(m) = toc(timer) / 60;
+        options.ProgressFcn(table(string({candidates.name})', loyoRMSE, runtimeMin, ...
+            VariableNames=["Model", "LOYO_RMSE", "CV_Runtime_min"]), perYearRMSE);
     end
 
     % --- Evidence: random k-fold is optimistic (baseline tree only) --------

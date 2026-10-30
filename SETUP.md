@@ -20,6 +20,8 @@ Running `main.m` executes the full pipeline end to end: it loads the data, prepa
 - `results/retrofit_shortlist.csv`: the top 50 Retrofit Radar candidates.
 - `figures/*.png`: five presentation figures (RMSE by year, validation gap, predicted vs actual, feature importance, Retrofit Radar).
 - `ProjectReport.html`: the exported live-script report.
+- `dashboard/data.js`: data for `dashboard/index.html`. Open that page in a browser while `main` runs to watch progress; it refreshes itself until the run completes.
+- `figures/6-9_*.png`: four heatmaps (feature correlation, prediction error, excess EUI by state × facility type, residuals by year × state).
 - `results/pipelineResults.mat`: the compact final model, CV results and out-of-fold predictions (gitignored).
 
 The full run takes about 25-35 minutes. To review results without retraining, run `ProjectReport` after `main` has run once.

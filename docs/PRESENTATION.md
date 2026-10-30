@@ -40,6 +40,8 @@ screenshots, animated backgrounds, and paragraphs on cards.
 | Tree, random 5-fold vs LOYO | 50.29 vs 61.02 (random folds understate error by 10.7) |
 | Leakage fixed | Tree LOYO 58.6 → 61.0 once preprocessing moved inside the folds |
 | Engineered features in the top 9 predictors | 4 (Energy Star × area, age, area × HDD, area × CDD) |
+| Accuracy, out-of-fold (v3) | MAE 21.0 · median absolute error 12.6 · RMSE 40.1 · R² 0.53 (median EUI ≈ 75) |
+| NTU what-if (illustrative) | The Hive ≈ 109, The Arc ≈ 102 kBtu/ft²/yr vs. US university median 91; see `figures/ntu_landmarks.png` |
 | Retrofit Radar, latest year | 1,316 of 22,449 buildings use 50%+ more than expected; top 50 = 1,573 GWh/yr excess |
 
 All figures are in `figures/`; the full narrative is in `ProjectReport.html`.

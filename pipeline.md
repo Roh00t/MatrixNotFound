@@ -44,7 +44,7 @@ or normalizing before splitting.
 Run existing ingestion by opening MATLAB and executing:
 
 ```matlab
-cd('C:\Users\Asus\OneDrive\Documents\GitHub\MatrixNotFound')
+% from the repository root
 step01_ingest
 ```
 

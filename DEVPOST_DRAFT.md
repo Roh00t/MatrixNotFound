@@ -34,4 +34,9 @@ We also found **2.4 RMSE of hidden data leakage** in validation: preprocessing h
 - Engineered physical features (efficiency rating × floor area, floor area × heating and cooling degree days, and building age) all rank among the top nine predictors of the final model.
 - Built the implementation using native MATLAB tools, without external machine-learning dependencies.
 - Designed validation to reflect the real temporal shift from training years to the test year.
+- Cross-checked our result with a second, independently built pipeline (bagged trees, with unit tests): on the same held-out year the two agree within 0.25 RMSE (41.31 vs 41.54).
+- Built a live results dashboard that MATLAB updates while the pipeline runs (each model's score appears as it finishes), plus matrix diagnostics: a prediction-error heatmap, a feature correlation matrix, residuals by year × state, and a state × facility-type map of where buildings use more energy than expected.
+- The pipeline is fully reproducible: a clean-room rerun reproduced our submission byte for byte.
+- Measured accuracy on years the model never saw: MAE 21.0 kBtu/ft²/yr (median building ≈ 75), R² 0.53.
+- Brought it home to campus: an illustrative what-if runs NTU's The Hive and The Arc through the same pipeline.
 

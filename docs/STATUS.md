@@ -1,41 +1,33 @@
 # Implementation status
 
-Updated 30 October 2026 during the developer handoff.
+Updated 30 October 2026 after the verified runs (MATLAB R2026b, Statistics and Machine Learning Toolbox).
+
+## Official pipeline (`main.m`)
 
 | Component | Status |
 | --- | --- |
-| Starter review | BuildingRegressionModels.m and README reviewed |
-| Local data audit | Row counts, columns, blank counts and year-factor shift inspected |
-| Step 1 ingestion | Existing step01_ingest.m and src/loadBuildingData.m present |
-| Ingestion runtime check | Passed in the user's MATLAB desktop session: 75,757 training rows, 9,705 test rows, 62 predictors |
-| Year metadata preservation | Implemented as optional seventh loader output; categorical year excluded from Step 2 model inputs |
-| Preprocessing | Passed in the user's desktop session: all rows retained, 122 model inputs, completion checks passed; unit tests not yet verified |
-| Feature engineering | Passed in user's desktop session: five added features, 127 model inputs |
-| Training/evaluation | Passed in user's MATLAB session; saved CSV confirms Bag OOF RMSE 42.2018, temporal RMSE 41.5379; LSBoost OOF 41.8071, temporal 45.0487 |
-| Tuning | Planned after initial model scores |
-| Final model/submission | Passed in user's MATLAB session in 262.6 seconds; final model saved, 9,705 predictions, bundle reload and CSV checks passed |
-| Presentation | Storyboard and design specification written; rendered deck not created |
+| Ingestion (`src/loadData.m`) | Done: 75,757 train / 9,705 test rows, 62 predictors, categories aligned |
+| Preprocessing and features | Done: train-only imputation inside every fold, missingness flags, four engineered features |
+| Validation | Done: leave-one-year-out CV (6 folds); random 5-fold shown for contrast |
+| Model iteration | Done: tree 61.02 → LSBoost v1 41.06 → v2 41.85 → **v3 40.12** (LOYO RMSE) |
+| Submission | Done: `submission.csv`, 9,705 × 2, finite and non-negative, ids match the sample |
+| Reproducibility | Done: clean-room rerun reproduced `submission.csv` byte for byte |
+| Retrofit Radar, figures, heatmaps | Done: `results/retrofit_shortlist.csv`, `figures/1-11_*.png` |
+| Extended accuracy metrics | Done: MAE 21.0, RMSE 40.1, R² 0.53 (`results/extended_metrics.csv`) |
+| NTU what-if | Done: `figures/ntu_landmarks.png`, `results/ntu_landmarks.csv` (illustrative inputs) |
+| Dashboard | Done: `dashboard/index.html`, updated live by `main.m` |
+| Report | Done: `ProjectReport.html` |
 
-Do not treat documentation snippets as finished executable modules. The current
-priority is publishing the checked release package and preparing the presentation.
-Bag was selected for its stronger later-year validation score.
+## Independent cross-check pipeline (`step01`–`step05`)
 
-Packaging review: release/submission.csv and release/model_comparison.csv copy the
-completed run outputs. IDs, schema, row counts and prediction finiteness were
-independently checked; SHA-256 manifest saved. Large model stays local. README
-now describes the evaluated step pipeline; alternate draft retained separately.
+| Component | Status |
+| --- | --- |
+| Steps 1–5 | Passed in the team's MATLAB session; Bag selected (random 5-fold OOF 42.20, year-6 RMSE 41.54) |
+| Unit tests (`tests/`) | 6/6 pass (`runtests('tests')`) |
+| Outputs | `release/model_comparison.csv`, `release/crosscheck_bag_submission.csv`, `release/manifest.csv` |
+| Saved 135 MB model | Local only (`artifacts/`, gitignored); rerun `step05_predict_submit` to regenerate |
 
-Integration note: teammate updates introduced conflict markers in engineerFeatures.m
-and .gitignore. Both feature implementations were preserved: numeric Year_Factor
-inputs dispatch to engineerLegacyFeatures.m for the teammate pipeline, while the
-Step 2 cleaned inputs use the five evaluated features. The teammate's calendar
-mapping assumption is preserved only in that legacy function, not used in Step 5.
-Git conflict index entries still require review/staging by the team; no merge or
-teammate deletion was committed as part of Step 5.
+## Remaining (team)
 
-Runtime attempt: MATLAB R2026b with a workspace-local preferences directory;
-batch command changed into this repository, ran step01_ingest, and would have
-asserted 75,757 training rows and 9,705 test rows. MATLAB failed before those
-assertions ran: `Unable to communicate with required MathWorks services (error 5201)`.
-Try running the script in the team's already signed-in MATLAB desktop session.
-This is an environment/service blocker, not proof that the loader passes or fails.
+- Presentation deck and demo recording (Shuan): see [PRESENTATION.md](PRESENTATION.md)
+- Devpost entry and public repository link (Rohit): see [../DEVPOST_DRAFT.md](../DEVPOST_DRAFT.md)

@@ -4,3 +4,5 @@
 # Generated MATLAB models and local evaluation outputs
 *.mat
 /artifacts/
+assets/3d/Meshy_AI_NTU_The_Arc_Building_1030055149_image-to-3d-texture.glb
+assets/3d/Meshy_AI_The_Hive_Building_3D_1030054134_texture.glb

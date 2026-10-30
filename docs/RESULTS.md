@@ -1,4 +1,13 @@
-# Measured results and presentation wording
+# Cross-check pipeline: measured results
+
+> These are the results of the **independent cross-check pipeline**
+> (`step01`–`step05`). The **official** results come from `main.m`: LSBoost v3
+> with leave-one-year-out RMSE 40.12 (see [../README.md](../README.md) and
+> [PRESENTATION.md](PRESENTATION.md)). On the shared year-6 holdout the two
+> pipelines agree closely: 41.31 (official) vs 41.54 (cross-check Bag below).
+> Statements below such as "not six-fold LOYO" or "did not validate retrofit
+> ranking" describe this cross-check pipeline only; the official pipeline does
+> both. The cross-check submission is `release/crosscheck_bag_submission.csv`.
 
 ## What was completed
 

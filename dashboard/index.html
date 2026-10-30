@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retrofit Radar Dashboard</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --panel: #ffffff; --ink: #14202e; --muted: #5b6b7d; --line: #dde3ea;
+    --accent: #d9541e; --accent-soft: #fbe3d8; --good: #1f7a4d; --good-soft: #dcf1e6;
+    --blue: #2f6db0; --blue-soft: #dde9f6; --warn: #b7791f; --shadow: 0 1px 3px rgba(20,32,46,.08);
+    --bar-track: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1620; --panel: #172230; --ink: #e8eef5; --muted: #9aabbd; --line: #2a3a4c;
+      --accent: #f07a45; --accent-soft: #3b2418; --good: #4cc38a; --good-soft: #17352a;
+      --blue: #6ea6e6; --blue-soft: #1a2c42; --warn: #e0a84a; --shadow: none; --bar-track: #223142;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1620; --panel: #172230; --ink: #e8eef5; --muted: #9aabbd; --line: #2a3a4c;
+    --accent: #f07a45; --accent-soft: #3b2418; --good: #4cc38a; --good-soft: #17352a;
+    --blue: #6ea6e6; --blue-soft: #1a2c42; --warn: #e0a84a; --shadow: none; --bar-track: #223142;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: -.01em; }
+  h2 { margin: 0 0 4px; font-size: 19px; }
+  .sub { color: var(--muted); margin: 4px 0 0; }
+  .lede { color: var(--muted); margin: 0 0 16px; max-width: 75ch; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+          font-weight: 600; font-size: 13px; background: var(--good-soft); color: var(--good); }
+  .pill.running { background: var(--blue-soft); color: var(--blue); }
+  .pill.failed { background: var(--accent-soft); color: var(--accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .running .dot { animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  .progress { margin: 18px 0 6px; height: 8px; border-radius: 4px; background: var(--bar-track); overflow: hidden; }
+  .progress > div { height: 100%; background: var(--blue); transition: width .6s; }
+  .stage { color: var(--muted); font-size: 13px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+            padding: 20px; margin-top: 20px; box-shadow: var(--shadow); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 12px; margin-top: 20px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); }
+  .kpi .v { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .kpi .l { color: var(--muted); font-size: 13px; }
+  .kpi.hero { border-color: var(--accent); }
+  .kpi.hero .v { color: var(--accent); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
+  .grid2 > section, section { min-width: 0; }   /* let wide tables scroll instead of stretching the page */
+  .more { margin-top: 10px; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px;
+          border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .bars { display: grid; gap: 10px; margin-top: 12px; }
+  .bar-row { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 64px; gap: 10px; align-items: center; font-size: 14px; }
+  .track { background: var(--bar-track); border-radius: 6px; height: 22px; overflow: hidden; }
+  .fill { height: 100%; background: var(--blue); border-radius: 6px; transition: width .8s; }
+  .fill.best { background: var(--accent); }
+  .fill.pending { width: 100% !important; background: repeating-linear-gradient(90deg, var(--bar-track) 0 12px, var(--blue-soft) 12px 24px);
+                  animation: slide 1s linear infinite; background-size: 48px 100%; }
+  @keyframes slide { to { background-position: 48px 0; } }
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child, #shortlist th:nth-child(2), #shortlist td:nth-child(2) { text-align: left; }
+  th { color: var(--muted); font-weight: 600; cursor: default; }
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: var(--ink); }
+  td.heat { font-weight: 600; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+  select, input { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line);
+                  background: var(--panel); color: var(--ink); }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 12px; }
+  figure { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; cursor: zoom-in; }
+  figure img { width: 100%; display: block; aspect-ratio: 4 / 3; object-fit: contain; }
+  figcaption { padding: 8px 10px; font-size: 13px; color: #33414f; background: #f7f9fb; border-top: 1px solid #e3e8ee; }
+  .lightbox { position: fixed; inset: 0; background: rgba(8,12,18,.85); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; cursor: zoom-out; }
+  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; background: #fff; }
+  .hist { display: flex; align-items: flex-end; gap: 4px; height: 140px; margin-top: 12px; }
+  .hist div { flex: 1; background: var(--blue); border-radius: 4px 4px 0 0; min-height: 2px; position: relative; }
+  .hist-labels { display: flex; gap: 4px; font-size: 11px; color: var(--muted); }
+  .hist-labels span { flex: 1; text-align: center; }
+  .checks { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; }
+  .checks li::before { content: "✓ "; color: var(--good); font-weight: 700; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  code { background: var(--bar-track); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
+  @media (max-width: 560px) { .bar-row { grid-template-columns: 1fr 56px; } .bar-row .track { grid-column: 1 / -1; grid-row: 2; } h1 { font-size: 23px; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="empty">
+    <h2>No results yet</h2>
+    <p>Run <code>main</code> in MATLAB from the repository root. This page fills in as the pipeline runs.</p>
+  </div>
+</div>
+<div class="lightbox" id="lightbox"><img alt=""></div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  const D = window.DASHBOARD;
+  const app = document.getElementById("app");
+  if (!D) return;
+
+  const fmt = (x, d = 2) => (x === null || x === undefined || Number.isNaN(x)) ? "–" : Number(x).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  const int = (x) => fmt(x, 0);
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const pretty = (s) => esc(String(s ?? "").replace(/_/g, " "));
+  const asRows = (m) => !m ? [] : (Array.isArray(m[0]) ? m : [m]);
+
+  const running = D.status === "running";
+  const failed = D.status === "failed";
+  if (running) setTimeout(() => location.reload(), 8000);
+
+  const models = (D.modelTable || []).map((r, i) => ({
+    name: r.Model, loyo: r.LOYO_RMSE, runtime: r.CV_Runtime_min, perYear: asRows(D.perYear)[i] || []
+  }));
+  const done = models.filter((m) => m.loyo !== null && m.loyo !== undefined);
+  const bestLoyo = done.length ? Math.min(...done.map((m) => m.loyo)) : null;
+  const H = D.headline || null;
+  const pct = Math.round(100 * (D.step || 0) / (D.totalSteps || 1));
+
+  let html = `
+  <header>
+    <div>
+      <h1>Retrofit Radar</h1>
+      <p class="sub">Predicting building energy use (site EUI) with MATLAB · Team MatrixNotFound · Learn to Hack: MATLAB Edition 2026</p>
+    </div>
+    <span class="pill ${running ? "running" : failed ? "failed" : ""}"><span class="dot"></span>${running ? "Pipeline running" : failed ? "Run failed" : "Run complete"} · ${esc(D.updated)}</span>
+  </header>
+  <div class="progress"><div style="width:${running ? pct : 100}%"></div></div>
+  <div class="stage">${esc(D.stage || "")}${running ? " · this page refreshes automatically" : ""}</div>`;
+
+  // --- KPI cards --------------------------------------------------------
+  if (H) {
+    html += `<div class="kpis">
+      <div class="kpi hero"><div class="v">${fmt(H.bestRMSE)}</div><div class="l">Best leave-one-year-out RMSE<br>${esc(H.bestModel)}</div></div>
+      <div class="kpi"><div class="v">−${fmt(H.improvementPct, 0)}%</div><div class="l">Error vs. single regression tree (${fmt(H.baselineRMSE)})</div></div>
+      <div class="kpi"><div class="v">${fmt(H.kfoldOptimism, 1)}</div><div class="l">RMSE hidden by random k-fold (why we validate by year)</div></div>
+      <div class="kpi"><div class="v">${int(H.radarFlagged)}</div><div class="l">Buildings using 50%+ more energy than expected (${fmt(H.radarFlaggedPct, 0)}%)</div></div>
+      <div class="kpi"><div class="v">${int(H.shortlistGWh)}</div><div class="l">GWh/yr excess use in the top-50 retrofit shortlist</div></div>
+    </div>`;
+  } else if (D.data) {
+    html += `<div class="kpis">
+      <div class="kpi"><div class="v">${int(D.data.trainRows)}</div><div class="l">Training building-years</div></div>
+      <div class="kpi"><div class="v">${int(D.data.testRows)}</div><div class="l">Test buildings (year 7, never seen)</div></div>
+      <div class="kpi"><div class="v">${int(D.data.predictors)}</div><div class="l">Raw predictors</div></div>
+    </div>`;
+  }
+
+  // --- Model iteration --------------------------------------------------
+  if (models.length) {
+    const maxV = Math.max(...done.map((m) => m.loyo), 1);
+    html += `<section><h2>Model iteration</h2>
+      <p class="lede">Each model is scored by leave-one-year-out cross-validation: hold out a whole year, train on the other five, repeat for all six. Lower is better.</p>
+      <div class="bars">` + models.map((m) => {
+        const pending = m.loyo === null || m.loyo === undefined;
+        const w = pending ? 100 : (100 * m.loyo / maxV);
+        return `<div class="bar-row"><div>${esc(m.name)}</div>
+          <div class="track"><div class="fill ${pending ? "pending" : (m.loyo === bestLoyo ? "best" : "")}" style="width:${w}%"></div></div>
+          <div class="num">${pending ? (running ? "running" : "failed") : fmt(m.loyo)}</div></div>`;
+      }).join("") + `</div>`;
+
+    const years = D.years || [];
+    if (years.length && done.length) {
+      const all = models.flatMap((m) => m.perYear).filter((v) => v !== null);
+      const lo = Math.min(...all), hi = Math.max(...all);
+      const shade = (v) => { if (v === null) return ""; const t = (v - lo) / ((hi - lo) || 1); return `background: color-mix(in srgb, var(--accent) ${Math.round(8 + 50 * t)}%, transparent)`; };
+      html += `<h2 style="margin-top:22px">RMSE on each held-out year</h2>
+        <div class="scroll"><table><thead><tr><th>Model</th>${years.map((y) => `<th>Year ${esc(y)}</th>`).join("")}<th>CV time</th></tr></thead><tbody>` +
+        models.map((m) => `<tr><td>${esc(m.name)}</td>${years.map((_, j) => `<td class="heat" style="${shade(m.perYear[j] ?? null)}">${fmt(m.perYear[j])}</td>`).join("")}<td>${m.runtime ? fmt(m.runtime, 1) + " min" : "–"}</td></tr>`).join("") +
+        `</tbody></table></div>`;
+    }
+    const M = Array.isArray(D.metrics) ? D.metrics[0] : D.metrics;
+    if (M) {
+      html += `<h2 style="margin-top:22px">Accuracy of the selected model (out-of-fold)</h2>
+        <div class="kpis" style="margin-top:10px">
+          <div class="kpi"><div class="v">${fmt(M.MAE, 1)}</div><div class="l">MAE: typical miss, kBtu/ft²/yr</div></div>
+          <div class="kpi"><div class="v">${fmt(M.MedianAE, 1)}</div><div class="l">Median absolute error</div></div>
+          <div class="kpi"><div class="v">${fmt(M.RMSE, 1)}</div><div class="l">RMSE (competition metric)</div></div>
+          <div class="kpi"><div class="v">${fmt(M.MSE, 0)}</div><div class="l">MSE</div></div>
+          <div class="kpi"><div class="v">${fmt(M.R2, 2)}</div><div class="l">R²: share of variance explained</div></div>
+        </div>
+        <p class="note">Every prediction here comes from a model that never saw that building's year. RMSE is well above MAE because a small number of extreme consumers dominate squared error; those are the buildings Retrofit Radar surfaces.</p>`;
+    }
+    html += `</section>`;
+  }
+
+  // --- Validation evidence + cross-check -------------------------------
+  if (D.validationGap) {
+    const g = D.validationGap;
+    const maxG = Math.max(...g.map((r) => r.Tree_RMSE));
+    html += `<div class="grid2"><section><h2>Why we validate by year</h2>
+      <p class="lede">The same building appears in several years, so random folds let the model recognise buildings it has already seen. Holding out a year matches the test set (year 7 only).</p>
+      <div class="bars">` + g.map((r, i) => `<div class="bar-row"><div>${esc(r.Scheme)}</div>
+        <div class="track"><div class="fill ${i === 1 ? "best" : ""}" style="width:${100 * r.Tree_RMSE / maxG}%"></div></div><div class="num">${fmt(r.Tree_RMSE)}</div></div>`).join("") +
+      `</div><p class="note">Baseline regression tree, same data and preprocessing; only the split changes.</p></section>`;
+    if (D.crossCheck) {
+      const c = D.crossCheck;
+      html += `<section><h2>Independent cross-check</h2>
+        <p class="lede">A teammate built a separate step-by-step pipeline (<code>step01</code>–<code>step05</code>). On the same test of training on years 1–5 and predicting year 6, both land close together, which is evidence the result is robust.</p>
+        <div class="scroll"><table><thead><tr><th>Model</th><th>Year-6 RMSE</th><th>Random 5-fold</th></tr></thead><tbody>
+        <tr><td><strong>${esc(c.ourModel)}</strong> (official)</td><td class="heat">${fmt(c.ourYear6)}</td><td>–</td></tr>` +
+        (c.models || []).map((r) => `<tr><td>${esc(r.Model)} (cross-check)</td><td>${fmt(r.TemporalRMSE)}</td><td>${fmt(r.OOF_RMSE)}</td></tr>`).join("") +
+        `</tbody></table></div></section>`;
+    }
+    html += `</div>`;
+  }
+
+  // --- Retrofit Radar ---------------------------------------------------
+  if (D.shortlist) {
+    const states = [...new Set(D.shortlist.map((r) => r.State_Factor))].sort();
+    html += `<section><h2>Retrofit Radar</h2>
+      <p class="lede">For every building in the latest year we compare actual energy use with what the model expects for similar buildings (same type, size, age and climate), using predictions from a model that never saw that year. The biggest excess is where an energy audit is most likely to pay off.</p>`;
+    if (D.radarByState) {
+      html += `<div class="scroll"><table><thead><tr><th>State</th><th>Buildings</th><th>50%+ over expected</th><th>Excess energy (GWh/yr)</th></tr></thead><tbody>` +
+        D.radarByState.slice().sort((a, b) => b.excessGWh - a.excessGWh).map((r) => `<tr><td>${pretty(r.state)}</td><td>${int(r.buildings)}</td><td>${fmt(r.flaggedPct, 1)}%</td><td>${fmt(r.excessGWh, 1)}</td></tr>`).join("") +
+        `</tbody></table></div>`;
+    }
+    html += `<h2 style="margin-top:22px">Top-50 retrofit shortlist</h2>
+      <div class="controls">
+        <select id="stateFilter"><option value="">All states</option>${states.map((s) => `<option>${esc(s)}</option>`).join("")}</select>
+        <input id="typeFilter" type="search" placeholder="Filter facility type…">
+      </div>
+      <div class="scroll"><table id="shortlist"><thead><tr>
+        <th class="sortable" data-k="rank">#</th><th class="sortable" data-k="facility_type">Facility type</th><th class="sortable" data-k="State_Factor">State</th>
+        <th class="sortable" data-k="floor_area">Floor area (ft²)</th><th class="sortable" data-k="actual_eui">Actual EUI</th><th class="sortable" data-k="expected_eui">Expected EUI</th>
+        <th class="sortable" data-k="excess_pct">Excess</th><th class="sortable" data-k="excess_MWh_per_year">Excess MWh/yr</th></tr></thead><tbody></tbody></table></div>
+      <button class="more" id="showAll" type="button">Show all 50</button>
+      <p class="note">A flag means "inspect first", not "wasting energy": some uses (hospitals, labs) are legitimately intensive, and extreme cases may be metering errors worth catching too.</p>
+    </section>`;
+  }
+
+  // --- NTU what-if --------------------------------------------------------
+  if (D.ntu && D.ntu.length) {
+    html += `<section><h2>Local what-if: NTU campus</h2>
+      <p class="lede">What would our model predict for two NTU landmarks? They are run through exactly the same preprocessing and model as the test set. This is illustrative: floor areas are estimates, and because the training data covers anonymised US states, the climate comes from the hottest training state (${pretty(D.ntu[0].climate_state)}) as the closest analogue to Singapore.</p>
+      <div class="kpis">` + D.ntu.map((b) => `<div class="kpi"><div class="v">${fmt(b.predicted_eui, 0)}</div>
+        <div class="l"><strong>${esc(b.name)}</strong> (built ${b.year_built}, ~${int(b.floor_area)} ft²)<br>predicted kBtu/ft²/yr · ≈${int(b.predicted_MWh_per_year)} MWh/yr</div></div>`).join("") +
+      `<div class="kpi"><div class="v">${fmt(D.ntu[0].us_university_median_eui, 0)}</div><div class="l">Median measured EUI of US university buildings in the training data</div></div></div></section>`;
+  }
+
+  // --- Submission -------------------------------------------------------
+  if (D.submission) {
+    const s = D.submission, maxC = Math.max(...s.binCounts, 1);
+    html += `<section><h2>Submission: year-7 predictions</h2>
+      <p class="lede">Distribution of predicted site EUI for the ${int(s.rows)} test buildings (median ${fmt(s.median, 1)}, range ${fmt(s.min, 1)}–${fmt(s.max, 1)}).</p>
+      <div class="hist">${s.binCounts.map((c) => `<div style="height:${100 * c / maxC}%" title="${int(c)} buildings"></div>`).join("")}</div>
+      <div class="hist-labels">${s.binCounts.map((_, i) => `<span>${s.binEdges[i]}</span>`).join("")}</div>
+      <ul class="checks"><li>Exactly ${int(s.rows)} rows × 2 columns (<code>id</code>, <code>site_eui</code>), read back from disk</li>
+        <li>Every prediction finite and non-negative</li><li>Ids identical to <code>sample_solution.csv</code>, in order</li>
+        <li>Reproduced byte-for-byte by a clean-room rerun</li></ul></section>`;
+  }
+
+  // --- Figures ------------------------------------------------------------
+  if (!running && H) {
+    const figs = [
+      ["11_model_journey", "Model journey: baseline to final"],
+      ["10_iteration_heatmap", "Held-out RMSE grid: every model × every year"],
+      ["1_rmse_by_year", "Held-out RMSE by year for every model"],
+      ["2_validation_gap", "Random k-fold vs. leave-one-year-out"],
+      ["3_predicted_vs_actual", "Out-of-fold predicted vs. actual"],
+      ["4_feature_importance", "Top predictors of the selected model"],
+      ["5_retrofit_radar", "Retrofit Radar: top 20 buildings"],
+      ["6_feature_correlation", "Feature correlation matrix"],
+      ["7_prediction_heatmap", "Prediction error heatmap (regression confusion matrix)"],
+      ["8_radar_state_facility", "Median excess EUI by state and facility type"],
+      ["9_residual_year_state", "Mean residual by held-out year and state"],
+      ["ntu_landmarks", "What-if: NTU's The Hive and The Arc"]
+    ];
+    html += `<section><h2>Figures</h2><p class="lede">Generated by <code>makeFigures</code>, <code>makeHeatmaps</code>, <code>makeIterationFigures</code> and <code>simulateNTULandmarks</code>. Click to enlarge.</p>
+      <div class="gallery">${figs.map(([f, c]) => `<figure><img src="../figures/${f}.png" alt="${esc(c)}" loading="lazy"><figcaption>${esc(c)}</figcaption></figure>`).join("")}</div></section>`;
+  }
+
+  html += `<footer>Generated by <code>main.m</code> (MATLAB, Statistics and Machine Learning Toolbox). Regenerate with <code>main</code>; the full report is in <code>ProjectReport.html</code>. Data: WiDS Datathon 2022.</footer>`;
+  app.innerHTML = html;
+
+  // --- Shortlist interactions ----------------------------------------------
+  if (D.shortlist) {
+    let rows = D.shortlist.slice(), sortKey = "rank", asc = true, showAll = false;
+    const tbody = document.querySelector("#shortlist tbody");
+    const stateSel = document.getElementById("stateFilter"), typeIn = document.getElementById("typeFilter");
+    const moreBtn = document.getElementById("showAll");
+    const render = () => {
+      const st = stateSel.value, q = typeIn.value.trim().toLowerCase().replace(/ /g, "_");
+      const matches = rows.filter((r) => (!st || r.State_Factor === st) && (!q || String(r.facility_type).toLowerCase().includes(q)))
+        .sort((a, b) => { const x = a[sortKey], y = b[sortKey]; const c = typeof x === "number" ? x - y : String(x).localeCompare(String(y)); return asc ? c : -c; });
+      const view = showAll ? matches : matches.slice(0, 15);
+      moreBtn.hidden = matches.length <= 15;
+      moreBtn.textContent = showAll ? "Show top 15" : `Show all ${matches.length}`;
+      tbody.innerHTML = view.map((r) => `<tr><td>${int(r.rank)}</td><td>${pretty(r.facility_type)}</td><td>${pretty(r.State_Factor)}</td>
+        <td>${int(r.floor_area)}</td><td>${fmt(r.actual_eui, 1)}</td><td>${fmt(r.expected_eui, 1)}</td>
+        <td class="heat">+${fmt(r.excess_pct, 0)}%</td><td>${int(r.excess_MWh_per_year)}</td></tr>`).join("") ||
+        `<tr><td colspan="8" style="text-align:center">No buildings match.</td></tr>`;
+    };
+    document.querySelectorAll("#shortlist th.sortable").forEach((th) => th.addEventListener("click", () => {
+      const k = th.dataset.k; asc = (sortKey === k) ? !asc : (k === "rank" || k === "facility_type" || k === "State_Factor"); sortKey = k; render();
+    }));
+    stateSel.addEventListener("change", render); typeIn.addEventListener("input", render);
+    moreBtn.addEventListener("click", () => { showAll = !showAll; render(); });
+    render();
+  }
+
+  // --- Lightbox --------------------------------------------------------------
+  const lb = document.getElementById("lightbox");
+  document.querySelectorAll("figure img").forEach((img) => img.parentElement.addEventListener("click", () => {
+    lb.querySelector("img").src = img.src; lb.style.display = "flex";
+  }));
+  lb.addEventListener("click", () => { lb.style.display = "none"; });
+})();
+</script>
+</body>
+</html>

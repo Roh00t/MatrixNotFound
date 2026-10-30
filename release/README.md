@@ -1,6 +1,12 @@
-# Completed run package
+# Cross-check run package (step pipeline)
 
-`submission.csv` is a byte-for-byte copy from the successful Step 5 run.
+These are the outputs of the team's **independent cross-check pipeline**
+(`step01`–`step05`, bagged trees). The **official submission is
+`../submission.csv`**, produced by `main.m` (LSBoost v3, leave-one-year-out
+RMSE 40.12). On the same year-6 holdout, the two pipelines score 41.31
+(official) and 41.54 (this Bag model).
+
+`crosscheck_bag_submission.csv` is a byte-for-byte copy from the successful Step 5 run.
 `model_comparison.csv` is copied from the successful Step 4 evaluation.
 `manifest.csv` records SHA-256 hashes, byte sizes and repository-relative paths.
 The model path in the manifest is local, not a public download.

@@ -2,7 +2,9 @@
 
 ## Overview
 
-`main.m` is the single entry point. It runs five stages, each a function in `src/`, and then turns the model into the **Retrofit Radar** shortlist and a set of presentation figures. `ProjectReport.m` is a live script that explains the results without retraining.
+`main.m` is the official entry point. It runs five stages, each a function in `src/`, and then turns the model into the **Retrofit Radar** shortlist, presentation figures and heatmaps. Throughout the run it updates a static **dashboard** (`dashboard/index.html`). `ProjectReport.m` is a live script that explains the results without retraining.
+
+The repository also contains an **independent cross-check pipeline** (`step01`–`step05`), described at the end of this document.
 
 ```mermaid
 flowchart TD
@@ -20,10 +22,14 @@ flowchart TD
     H --> J[writeSubmission<br/>submission.csv]
     I --> J
     H --> K[retrofitRadar<br/>results/retrofit_shortlist.csv]
-    H --> L[makeFigures<br/>figures/*.png]
+    H --> L[makeFigures + makeHeatmaps<br/>figures/*.png]
     K --> L
     H --> M[(results/pipelineResults.mat)]
     M --> N[ProjectReport.m<br/>ProjectReport.html]
+    C -. ProgressFcn after each model .-> P[writeDashboard<br/>dashboard/data.js]
+    J --> P
+    K --> P
+    P --> Q[dashboard/index.html<br/>static page, auto-refreshes while running]
 ```
 
 ## Modules
@@ -33,13 +39,20 @@ flowchart TD
 | `main.m` | Entry point | Seed, paths, runs every stage in order, saves results |
 | `src/loadData.m` | 1. Ingest | `readtable` with explicit types; categorical `Year_Factor`, `State_Factor`, `building_class`, `facility_type`; separate `site_eui` and `id`; give train and test the same category levels |
 | `src/preprocessData.m` | 2. Clean and impute | `Year_Factor` → number; `year_built == 0` → missing; `<name>_missing` flags; `energy_star_rating` filled by facility-type median; other gaps filled by the overall median. Fit on train, apply to both |
-| `src/engineerFeatures.m` | 3. Features | `building_age` (capped 0–100), `floor_area_x_hdd`, `floor_area_x_cdd`, `energy_star_x_floor_area` |
+| `src/engineerFeatures.m` | 3. Features | Shared by both pipelines. Tables with a numeric `Year_Factor` (from `preprocessData`) go to `src/engineerLegacyFeatures.m`: `building_age` (capped 0–100), `floor_area_x_hdd`, `floor_area_x_cdd`, `energy_star_x_floor_area`. The cross-check pipeline's cleaned tables get its five features |
 | `src/crossValidateModel.m` | 4. Validate | Generic CV over any fold labels, with optional per-fold preparation; returns pooled RMSE, per-fold RMSE and out-of-fold predictions |
-| `src/trainModels.m` | 4. Select | Candidate list, LOYO for all, random 5-fold for the tree, `try/catch` fallback, refit and `compact` the winner |
+| `src/trainModels.m` | 4. Select | Candidate list, LOYO for all, random 5-fold for the tree, `try/catch` fallback, refit and `compact` the winner; optional `ProgressFcn` reports each model's score as it finishes |
 | `src/computeRMSE.m` | 4. Metric | RMSE with input validation |
 | `src/writeSubmission.m` | 5. Submit | Predict, clamp at 0, check values, write and read back `id,site_eui` (9,705 × 2) |
 | `src/retrofitRadar.m` | Impact | Actual vs expected EUI for the latest year, excess MWh/yr, ranked shortlist CSV |
 | `src/makeFigures.m` | Impact | Five PNGs for the slides and report (light theme, `exportgraphics`) |
+| `src/makeHeatmaps.m` | Impact | Four matrix diagnostics: feature correlation, prediction-error heatmap (the regression version of a confusion matrix), excess EUI by state × facility type, mean residual by year × state |
+| `src/makeIterationFigures.m` | Impact | Model journey bar chart and the model × held-out-year RMSE heatmap |
+| `src/computeExtendedMetrics.m` | Impact | MAE, MSE, RMSE, R² and median absolute error on out-of-fold predictions → `results/extended_metrics.csv` |
+| `src/simulateNTULandmarks.m` | Impact | What-if for NTU's The Hive and The Arc (estimated inputs, hottest training climate) → `figures/ntu_landmarks.png`, `results/ntu_landmarks.csv` |
+| `src/writeDashboard.m` | Outputs | Serialises the dashboard struct to `dashboard/data.js` (`jsonencode`), written atomically |
+| `src/summarizeForDashboard.m` | Outputs | Final headline numbers, per-state radar summary, shortlist, submission profile, cross-check scores |
+| `dashboard/index.html` | Demo | Static results page (no server, no external libraries); reloads every 8 s while `status` is `running` |
 | `ProjectReport.m` | Demo | Live-script walkthrough, exported to HTML |
 
 ## Key design decisions
@@ -77,16 +90,29 @@ What we learned:
 | --- | --- | --- |
 | `submission.csv` | `writeSubmission` | yes |
 | `results/retrofit_shortlist.csv` | `retrofitRadar` | yes |
-| `figures/*.png` | `makeFigures` | yes |
+| `figures/1-5_*.png` | `makeFigures` | yes |
+| `figures/6-9_*.png` | `makeHeatmaps` | yes |
+| `figures/10-11_*.png` | `makeIterationFigures` | yes |
+| `figures/ntu_landmarks.png`, `results/ntu_landmarks.csv` | `simulateNTULandmarks` | yes |
+| `results/extended_metrics.csv` | `computeExtendedMetrics` | yes |
+| `dashboard/data.js` | `writeDashboard` | yes (the completed run) |
 | `ProjectReport.html` | `export` of `ProjectReport.m` | yes |
 | `results/pipelineResults.mat` | `main.m` | no (gitignored, regenerated) |
+
+## Independent cross-check pipeline
+
+A teammate built a second, separate pipeline to cross-check the result: `step01_ingest` → `step02_preprocess` → `step03_features` → `step04_train_evaluate` → `step05_predict_submit`. It uses its own loader (`loadBuildingData`), preprocessor (`fitPreprocessor` / `applyPreprocessor`), model comparison (`crossValidateModels`, `trainCandidate`) and exporter (`exportBuildingSubmission`), with unit tests in `tests/` (6/6 pass: `runtests('tests')`). Its design is documented in [docs/STEP_ARCHITECTURE.md](docs/STEP_ARCHITECTURE.md).
+
+It validates with random 5-fold CV plus one temporal check (train on years 1–5, predict year 6), and selects 200 bagged trees. Its outputs are in `release/`: `model_comparison.csv` and `crosscheck_bag_submission.csv`.
+
+On the shared year-6 holdout the two pipelines agree closely: **41.31** (official LSBoost v3) vs **41.54** (cross-check Bag). Two independent implementations landing within 0.25 RMSE is evidence that the result is robust rather than an artefact of one codebase. The official submission is `submission.csv` from `main.m`, because it is validated on all six held-out years rather than one.
 
 ## Related documents
 
 - [README.md](README.md): results and how to run
 - [GUARDRAILS.md](GUARDRAILS.md): integrity, security and responsible-use rules
 - [pipeline.md](pipeline.md): the original design specification, written before implementation
-- [docs/](docs/): team plan, presentation brief, resources and status
+- [docs/](docs/): team plan, presentation brief, cross-check results and architecture, resources and status
 
 ## Extending
 
