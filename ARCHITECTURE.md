@@ -48,6 +48,7 @@ flowchart TD
 | `src/makeFigures.m` | Impact | Five PNGs for the slides and report (light theme, `exportgraphics`) |
 | `src/makeHeatmaps.m` | Impact | Four matrix diagnostics: feature correlation, prediction-error heatmap (the regression version of a confusion matrix), excess EUI by state × facility type, mean residual by year × state |
 | `src/makeIterationFigures.m` | Impact | Model journey bar chart and the model × held-out-year RMSE heatmap |
+| `src/makeTestCorrelationHeatmap.m` | Impact | 30 × 30 correlation heatmap for `test.csv`: predicted `site_eui` (joined from `submission.csv`) and the 29 non-constant numeric features most correlated with it, pairwise on missing values |
 | `src/computeExtendedMetrics.m` | Impact | MAE, MSE, RMSE, R² and median absolute error on out-of-fold predictions → `results/extended_metrics.csv` |
 | `src/simulateNTULandmarks.m` | Impact | What-if for NTU's The Hive and The Arc (estimated inputs, hottest training climate) → `figures/ntu_landmarks.png`, `results/ntu_landmarks.csv` |
 | `src/writeDashboard.m` | Outputs | Serialises the dashboard struct to `dashboard/data.js` (`jsonencode`), written atomically |
@@ -93,6 +94,7 @@ What we learned:
 | `figures/1-5_*.png` | `makeFigures` | yes |
 | `figures/6-9_*.png` | `makeHeatmaps` | yes |
 | `figures/10-11_*.png` | `makeIterationFigures` | yes |
+| `figures/12_test_correlation_30x30.png` | `makeTestCorrelationHeatmap` | yes |
 | `figures/ntu_landmarks.png`, `results/ntu_landmarks.csv` | `simulateNTULandmarks` | yes |
 | `results/extended_metrics.csv` | `computeExtendedMetrics` | yes |
 | `dashboard/data.js` | `writeDashboard` | yes (the completed run) |
@@ -126,7 +128,7 @@ On the shared year-6 holdout the two pipelines agree closely: **41.31** (officia
 
 - [README.md](README.md): results and how to run
 - [GUARDRAILS.md](GUARDRAILS.md): integrity, security and responsible-use rules
-- [pipeline.md](pipeline.md): the original design specification, written before implementation
+- [docs/DESIGN_SPEC.md](docs/DESIGN_SPEC.md): the original design specification, written before implementation
 - [docs/](docs/): team plan, presentation brief, cross-check results and architecture, resources and status
 
 ## Extending

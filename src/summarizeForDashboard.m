@@ -1,11 +1,13 @@
-function dash = summarizeForDashboard(dash, cvReport, yTrain, shortlist, radar, submission, crossCheckFile)
+function dash = summarizeForDashboard(dash, cvReport, yTrain, shortlist, radar, submission, crossCheckFile, finalModel)
 %SUMMARIZEFORDASHBOARD Add the finished-run results to the dashboard struct.
 %
 %   dash = SUMMARIZEFORDASHBOARD(dash, cvReport, yTrain, shortlist, radar,
-%   submission, crossCheckFile) fills in everything the dashboard displays
-%   after a complete run: model comparison, per-year RMSE, the validation
-%   gap, Retrofit Radar summaries, the submission profile, and (if the file
-%   exists) the independent step-pipeline cross-check scores.
+%   submission, crossCheckFile, finalModel) fills in everything the dashboard
+%   displays after a complete run: model comparison, per-year RMSE, the
+%   validation gap, feature importance, an actual-vs-predicted count grid,
+%   Retrofit Radar summaries, the submission profile, and (if the file
+%   exists) the independent step-pipeline cross-check scores. The page draws
+%   these as interactive charts.
 
     arguments
         dash           (1,1) struct
@@ -15,6 +17,7 @@ function dash = summarizeForDashboard(dash, cvReport, yTrain, shortlist, radar, 
         radar          table
         submission     table
         crossCheckFile (1,1) string
+        finalModel
     end
 
     results = cvReport.results;
@@ -46,6 +49,18 @@ function dash = summarizeForDashboard(dash, cvReport, yTrain, shortlist, radar, 
     dash.perYear       = perYear{:, :};
     dash.years         = erase(string(perYear.Properties.VariableNames), "Year_");
     dash.validationGap = cvReport.validationGap;
+
+    % --- Feature importance (top 15) and actual-vs-predicted grid ----------
+    importance = predictorImportance(finalModel);
+    [importance, order] = sort(importance, "descend");
+    nTop = min(15, numel(importance));
+    dash.importance = table(string(finalModel.PredictorNames(order(1:nTop)))', ...
+        importance(1:nTop)', VariableNames=["feature", "importance"]);
+
+    gridEdges = 0:20:400;                                  % kBtu/ft²/yr bins
+    clip = @(v) min(v, gridEdges(end) - eps);
+    dash.errorGrid = struct("edges", gridEdges, "counts", ...
+        histcounts2(clip(yTrain), clip(cvReport.outOfFoldPredictions), gridEdges, gridEdges));
 
     % --- Retrofit Radar -----------------------------------------------------
     % Per state: share of buildings 50%+ over expected, and total excess energy

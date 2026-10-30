@@ -12,7 +12,7 @@ Updated 30 October 2026 after the verified runs (MATLAB R2026b, Statistics and M
 | Model iteration | Done: tree 61.02 → LSBoost v1 41.06 → v2 41.85 → **v3 40.12** (LOYO RMSE) |
 | Submission | Done: `submission.csv`, 9,705 × 2, finite and non-negative, ids match the sample |
 | Reproducibility | Done: clean-room rerun reproduced `submission.csv` byte for byte |
-| Retrofit Radar, figures, heatmaps | Done: `results/retrofit_shortlist.csv`, `figures/1-11_*.png` |
+| Retrofit Radar, figures, heatmaps | Done: `results/retrofit_shortlist.csv`, `figures/1-12_*.png` (12 = 30 × 30 test-set correlation) |
 | Extended accuracy metrics | Done: MAE 21.0, RMSE 40.1, R² 0.53 (`results/extended_metrics.csv`) |
 | NTU what-if | Done: `figures/ntu_landmarks.png`, `results/ntu_landmarks.csv` (illustrative inputs) |
 | Dashboard | Done: `dashboard/index.html`, updated live by `main.m` |
@@ -46,4 +46,4 @@ The dashboard and simulator were not reorganized. Cleanup did not retrain models
 ## Remaining delivery work
 
 - Presentation deck and demo recording (Shuan): see [PRESENTATION.md](PRESENTATION.md)
-- Devpost entry and public repository link (Rohit): see [../DEVPOST_DRAFT.md](../DEVPOST_DRAFT.md)
+- Devpost entry and public repository link (Rohit): see [DEVPOST_DRAFT.md](DEVPOST_DRAFT.md)

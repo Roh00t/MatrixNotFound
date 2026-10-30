@@ -44,7 +44,7 @@ Enforced by `src/writeSubmission.m` and `main.m`. A run that breaks any of these
 - The data comes from the WiDS Datathon 2022 (Kaggle) and was provided by the organisers. It is committed so judges can run `main.m` immediately. Credit: WiDS Datathon 2022 / Climate Change AI.
 - The data is anonymised (states and years are coded), and we make no attempt to re-identify buildings or locations.
 - No additional external datasets are added.
-- MathWorks starter material (`BuildingRegressionModels.m`, PDFs) remains under its own license (`license.txt`).
+- MathWorks starter material (`starter/`, plus the PDFs in `docs/hackathon/`) remains under its own license (`license.txt`).
 
 ## 6. Responsible use of predictions
 

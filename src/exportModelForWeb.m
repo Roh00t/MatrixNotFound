@@ -10,7 +10,7 @@ function exportModelForWeb(finalModel, trainTbl, yTrain, testPrepared, scenarioF
 %                categories) plus the learner weights
 %     levels     the category levels behind each categorical predictor's codes
 %     baselines  a fully prepared feature vector of a median building for each
-%                climate state, built with preprocessData/engineerFeatures
+%                climate state, built with preprocessData/engineerLegacyFeatures
 %     reference  facility-type Energy Star medians and EUI percentiles
 %     buildings  the NTU landmark scenarios (from results/ntu_landmarks.csv)
 %
@@ -184,7 +184,7 @@ function [baselines, states] = climateBaselines(trainTbl, predictors, isCategori
         row = scenarioRow(trainTbl, latest(latest.State_Factor == stateList(s), :), ...
             facilityType, 2000, 100000);
         [~, prepared] = preprocessData(trainTbl, row);
-        prepared = engineerFeatures(prepared);
+        prepared = engineerLegacyFeatures(prepared);
         baselines(s, :) = encodeTable(prepared, predictors, isCategorical, levels);
         cooling(s) = row.cooling_degree_days;
         heating(s) = row.heating_degree_days;
@@ -231,7 +231,7 @@ function cases = scenarioChecks(trainTbl, finalModel, facilityType)
             row.energy_star_rating = ratings(f);
             row.building_class(1) = categorical(classes(1 + (f == 3)));
             [~, prepared] = preprocessData(trainTbl, row);
-            prepared = engineerFeatures(prepared);
+            prepared = engineerLegacyFeatures(prepared);
             cases(k) = struct("state", s, "facility", facilities(f), ...
                 "buildingClass", classes(1 + (f == 3)), "yearBuilt", yearsBuilt(f), ...
                 "floorArea", areas(f), "energyStar", ratings(f), ...

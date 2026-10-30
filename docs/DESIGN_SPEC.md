@@ -1,7 +1,7 @@
 # Building energy prediction: implementation pipeline
 
-Developer specification, 30 October 2026. Start with [architecture.md](docs/STEP_ARCHITECTURE.md)
-for module contracts and [docs/RESOURCES.md](docs/RESOURCES.md) for references.
+Developer specification, 30 October 2026. Start with [STEP_ARCHITECTURE.md](STEP_ARCHITECTURE.md)
+for module contracts and [archive/RESOURCES.md](archive/RESOURCES.md) for references.
 Only ingestion is implemented today; model code below is illustrative design,
 not an already executable end-to-end system. No measured model score exists yet.
 
@@ -35,7 +35,7 @@ Asia/Kuala_Lumpur, as supplied in the briefing.
 
 Counts were obtained from local CSVs, not inferred from competition examples.
 Blank counts do not include numeric sentinel values, which need separate review.
-`BuildingRegressionModels.m` is the supplied starter tutorial in this repository;
+`starter/BuildingRegressionModels.m` is the supplied starter tutorial in this repository;
 it imports dummy data, explores missingness, separates the response, and trains
 models. Adapt its sequence, but retain informative categories and fit cleaning
 statistics inside validation folds rather than deleting all incomplete columns
@@ -51,7 +51,7 @@ step01_ingest
 Run the saved script by name. Pasting its body into the Command Window changes
 how `mfilename` resolves paths. Inspect `ingestionReport.MissingPredictors` and
 `ingestionReport.UnseenTestCategories`. Runtime validation status is recorded in
-[docs/STATUS.md](docs/STATUS.md), not implied by the existence of code.
+[docs/STATUS.md](STATUS.md), not implied by the existence of code.
 
 ## 3. Ingestion and exploratory analysis
 
@@ -272,5 +272,5 @@ beside the output. A valid file format does not establish predictive accuracy.
 - Gate E: a teammate runs the documented commands from a clean MATLAB session;
   real charts and scores populate the demo; public links and Devpost are checked.
 
-Use [docs/HACKATHON_PLAN.md](docs/HACKATHON_PLAN.md) for owners and cutoff times,
-and [docs/PRESENTATION.md](docs/PRESENTATION.md) for the glassmorphism demo brief.
+Use [archive/HACKATHON_PLAN.md](archive/HACKATHON_PLAN.md) for owners and cutoff times,
+and [docs/PRESENTATION.md](PRESENTATION.md) for the glassmorphism demo brief.

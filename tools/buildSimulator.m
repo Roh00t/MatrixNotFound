@@ -16,7 +16,7 @@ saved = load(fullfile(projectRoot, "results", "pipelineResults.mat"), "finalMode
 [trainTbl, testTbl, yTrain] = loadData(fullfile(projectRoot, "data"));
 
 [~, testPrepared] = preprocessData(trainTbl, testTbl);
-testPrepared = engineerFeatures(testPrepared);
+testPrepared = engineerLegacyFeatures(testPrepared);
 
 exportModelForWeb(saved.finalModel, trainTbl, yTrain, testPrepared, ...
     fullfile(projectRoot, "results", "ntu_landmarks.csv"), ...

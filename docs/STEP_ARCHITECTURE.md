@@ -3,7 +3,7 @@
 Architecture of the **independent cross-check pipeline** (`step01`–`step05`).
 The official pipeline is `main.m`, documented in [../ARCHITECTURE.md](../ARCHITECTURE.md).
 See [STATUS.md](STATUS.md) for implementation status and
-[pipeline.md](../pipeline.md) for the original modeling notes.
+[DESIGN_SPEC.md](DESIGN_SPEC.md) for the original modeling notes.
 
 ## Data flow
 

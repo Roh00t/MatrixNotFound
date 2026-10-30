@@ -2,16 +2,18 @@
 
 **Team MatrixNotFound** (Rohit, Matt, Shuan) · Learn to Hack: MATLAB Edition 2026
 
-**Project guide:** [Start here](docs/START_HERE.md) explains the run commands,
-the three experiment families, and which outputs belong to each model.
-The completed [three-model comparison](release/three_model_experiment/README.md)
-has stable metrics, chart, and JSON paths for presentation/UI work.
-
 We predict a building's **site energy use intensity** (`site_eui`) from its type, size, age and local climate using the WiDS Datathon 2022 data. Then we use those predictions to find the buildings that use the most energy beyond what similar buildings use. Those are the buildings an organisation should audit and retrofit first.
 
-**Start here:** open [`dashboard/index.html`](dashboard/index.html) for the interactive results page, [`dashboard/simulator.html`](dashboard/simulator.html) for the **3D building simulator**, or [`ProjectReport.html`](ProjectReport.html) for the full written walkthrough.
+## Start here
 
-**3D simulator:** click NTU's The Hive or The Arc in 3D and our trained model runs **in your browser**: the 300-tree LSBoost ensemble is exported from MATLAB to JavaScript. Change floor area, age, Energy Star rating or climate and the predicted energy intensity, annual MWh and average power draw (kW) update instantly. A Node.js check confirms the browser model matches MATLAB's `predict()` exactly (difference 0 on 500 test rows and 9 full-pipeline scenarios).
+| Open | What you get |
+| --- | --- |
+| [`dashboard/index.html`](dashboard/index.html) | **Interactive results**: hover and toggle charts, a filterable retrofit shortlist, and the figure gallery. It updates live while `main.m` runs |
+| [`dashboard/simulator.html`](dashboard/simulator.html) | **3D building simulator**: click NTU's The Hive or The Arc and our trained model runs **in your browser**, with live response curves |
+| [`ProjectReport.html`](ProjectReport.html) | **Written walkthrough**: a MATLAB live script exported to HTML, with every figure |
+| [`docs/START_HERE.md`](docs/START_HERE.md) | Run commands, the experiment families, and which outputs belong to which model |
+
+**How the simulator works:** the 300-tree LSBoost ensemble is exported from MATLAB to JavaScript. Change floor area, age, Energy Star rating or climate and the predicted energy intensity, annual MWh and average power draw (kW) update instantly. A Node.js check confirms the browser model matches MATLAB's `predict()` exactly (difference 0 on 500 test rows and 9 full-pipeline scenarios).
 
 ![Retrofit Radar](figures/5_retrofit_radar.png)
 
@@ -51,7 +53,7 @@ Leave-one-year-out cross-validation (LOYO): hold out one whole year, train on th
 3. **Engineer** (`src/engineerLegacyFeatures.m`): building age, floor area × heating and cooling degree days (seasonal thermal load), and Energy Star × floor area. The independent step pipeline uses `src/engineerFeatures.m` with a different schema; these functions are not interchangeable.
 4. **Select** (`src/trainModels.m`): a regression tree baseline and three LSBoost iterations, scored by LOYO. Preprocessing is refit inside every fold, and failures fall back to the next-best model.
 5. **Submit** (`src/writeSubmission.m`): finite, non-negative predictions, checked as exactly 9,705 × 2 `id,site_eui`, with ids matched to the sample solution.
-6. **Act** (`src/retrofitRadar.m`, `src/makeFigures.m`, `src/makeHeatmaps.m`, `src/makeIterationFigures.m`, `src/computeExtendedMetrics.m`, `src/simulateNTULandmarks.m`): actual vs expected EUI for the latest year ranked by excess MWh per year, extended accuracy metrics, an NTU what-if, and twelve figures.
+6. **Act** (`src/retrofitRadar.m`, `src/makeFigures.m`, `src/makeHeatmaps.m`, `src/makeIterationFigures.m`, `src/makeTestCorrelationHeatmap.m`, `src/computeExtendedMetrics.m`, `src/simulateNTULandmarks.m`): actual vs expected EUI for the latest year ranked by excess MWh per year, extended accuracy metrics, an NTU what-if, and thirteen figures (including a 30 × 30 test-set correlation heatmap).
 7. **Show** (`src/writeDashboard.m`): the dashboard updates while the pipeline runs, so each model's score appears as soon as it is ready.
 
 Details and diagrams: [ARCHITECTURE.md](ARCHITECTURE.md). Integrity, security and responsible-use rules: [GUARDRAILS.md](GUARDRAILS.md).
@@ -83,7 +85,7 @@ node tests/web/checkPredict.mjs
 - `ProjectReport.html`
 - `results/pipelineResults.mat` (gitignored)
 
-The seed is fixed with `rng(42)`. More detail is in [SETUP.md](SETUP.md).
+The seed is fixed with `rng(42)`. More detail is in [docs/SETUP.md](docs/SETUP.md).
 
 ## Repository
 
@@ -96,10 +98,12 @@ The seed is fixed with `rng(42)`. More detail is in [SETUP.md](SETUP.md).
 | `figures/`, `results/` | Figures and Retrofit Radar shortlist |
 | `submission.csv` | Official test-set predictions |
 | `step01`–`step08_*.m`, `tests/`, `release/` | Cross-check pipeline, diagnostics, controlled three-model experiment, and backend tests; run `run_project_tests` |
-| `docs/` | Team plan, presentation brief, cross-check architecture, status, resources |
-| `DEVPOST_DRAFT.md` | Devpost submission text |
+| `docs/` | Start here, presentation brief, Devpost draft, setup, metrics, cross-check architecture, status (`archive/` = earlier planning notes) |
+| `presentation/` | Presentation preview page |
+| `docs/DEVPOST_DRAFT.md` | Devpost submission text |
 | `data/` | WiDS Datathon 2022 train/test/sample files |
-| `BuildingRegressionModels.m`, PDFs | MathWorks starter material |
+| `starter/` | MathWorks starter material (tutorial script, dummy data, banner) |
+| `docs/hackathon/` | Hackathon briefing, instructions and scoring rubric |
 
 ## Credits
 

@@ -60,7 +60,7 @@ that result did not replace either existing submission.
 - [Three-model experiment](THREE_MODEL_EXPERIMENT.md): factors and fair comparison.
 - [Metrics](METRICS.md): MSE, RMSE, MAE and R2 definitions for the cross-check.
 - [Presentation](PRESENTATION.md): storyboard and design direction.
-- [Resources](RESOURCES.md): data dictionary and MATLAB references.
+- [Resources](archive/RESOURCES.md): data dictionary and MATLAB references.
 - [Status](STATUS.md): recorded runs and remaining checks.
 
 Keep the large local model bundle safe; it is not in an ordinary Git clone.

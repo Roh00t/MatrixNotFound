@@ -1,5 +1,6 @@
 %[text] # Retrofit Radar: Predicting Building Energy Use with MATLAB
 %[text] **Team MatrixNotFound** · Learn to Hack: MATLAB Edition 2026
+%[text] **Interactive versions:** open `dashboard/index.html` (live charts that update while `main.m` runs) and `dashboard/simulator.html` (click a 3D building and the model runs in your browser).
 %[text] This report walks through our solution using the results saved by `main.m`. It does not retrain anything, so it runs in seconds. Run `main.m` first to create `results/pipelineResults.mat`, `results/retrofit_shortlist.csv` and the figures in `figures/`.
 %%
 %[text] ## 1. The problem
@@ -53,6 +54,11 @@ disp(metrics)
 %[text] - **MAE ≈ 21 kBtu/ft²/yr:** the typical prediction misses by about 21, and half of all predictions miss by less than about 13 (median absolute error), against a median building EUI of about 75.
 %[text] - **R² ≈ 0.53:** the model explains about half of the variation in energy intensity across buildings it has never seen, using only type, size, age, rating and climate. The rest reflects things the data cannot see, such as occupancy, equipment and operating hours.
 %[text] - **RMSE (40) is about twice MAE (21)** because squared error is dominated by a small number of extreme consumers. Those are exactly the buildings Retrofit Radar is designed to surface.
+%[text] The residual diagnostics confirm this: errors are centred close to zero for typical buildings, with a long tail of buildings that use far more than predicted.
+diagnosticsDir = fullfile(projectRoot, "results", "loyo_diagnostics");
+if isfile(fullfile(diagnosticsDir, "residual_diagnostics.png"))
+    showFigure(fullfile(diagnosticsDir, "residual_diagnostics.png"));
+end
 showFigure(fullfile(figuresDir, "3_predicted_vs_actual.png"));
 %[text] Facility type and Energy Star rating dominate, and our engineered features (efficiency × floor area, building age, floor area × degree days) are among the strongest predictors.
 showFigure(fullfile(figuresDir, "4_feature_importance.png"));
@@ -64,6 +70,8 @@ showFigure(fullfile(figuresDir, "7_prediction_heatmap.png"));
 showFigure(fullfile(figuresDir, "6_feature_correlation.png"));
 %[text] **Residuals by year and state.** Each cell is the mean error for a state in a year, predicted by a model that never saw that year. The bias shifts from year to year (for example, State 10 swings from +15.7 in year 3 to −14.7 in year 5). That year-to-year drift is exactly why random cross-validation, which mixes years, is optimistic, and why we validate one held-out year at a time.
 showFigure(fullfile(figuresDir, "9_residual_year_state.png"));
+%[text] **Test-set correlation matrix (30 × 30).** The same view for the 9,705 test buildings, using our *predicted* `site_eui` (the test set has no measured values) and the 29 numeric features most correlated with it. Energy Star rating has the strongest link (−0.54): better-rated buildings are predicted to use less energy, consistent with it being the model's second most important predictor. The climate variables form two tight blocks: cold-winter measures correlate positively with predicted use, and mild-winter minimum temperatures negatively. Inside each block, features correlate at 0.9 or more with each other, which is why dropping the 36 monthly temperature columns (v3) lost no information. The wind correlations rest on only the ~12% of test rows that have wind data.
+showFigure(fullfile(figuresDir, "12_test_correlation_30x30.png"));
 %%
 %[text] ## 7. Retrofit Radar: from prediction to action
 %[text] For each building in the most recent year we compare its **actual** EUI with the **expected** EUI from the out-of-fold model, which is what similar buildings in a similar climate use. Multiplying the excess by floor area gives the excess energy in MWh per year, and ranking by it puts the biggest savings opportunities first.

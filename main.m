@@ -13,6 +13,7 @@
 %             makeFigures        presentation figures in figures/
 %             makeHeatmaps       matrix diagnostics in figures/
 %             makeIterationFigures  model journey and per-year RMSE grid
+%             makeTestCorrelationHeatmap  30x30 test-set correlation matrix
 %             computeExtendedMetrics  MAE, MSE, RMSE, R^2 (out-of-fold)
 %             simulateNTULandmarks  what-if for The Hive and The Arc
 %   Outputs   writeDashboard     live results page: open dashboard/index.html
@@ -92,6 +93,7 @@ dash = advanceDashboard(dash, dashboardDir, "Step 5 of 6: Retrofit Radar and fig
 makeFigures(cvReport, finalModel, yTrain, shortlist, figuresDir);
 makeHeatmaps(trainTbl, trainPrepared, yTrain, cvReport.outOfFoldPredictions, radar, figuresDir);
 makeIterationFigures(cvReport, figuresDir);
+makeTestCorrelationHeatmap(dataDir, fullfile(projectRoot, "submission.csv"), figuresDir);
 
 % Accuracy beyond RMSE, on out-of-fold predictions (data the model never saw).
 metrics = computeExtendedMetrics(yTrain, cvReport.outOfFoldPredictions);
@@ -121,7 +123,7 @@ end
 % The step pipeline's scores (release/model_comparison.csv) are shown as an
 % independent cross-check when that file is present.
 dash = summarizeForDashboard(dash, cvReport, yTrain, shortlist, radar, submission, ...
-    fullfile(projectRoot, "release", "model_comparison.csv"));
+    fullfile(projectRoot, "release", "model_comparison.csv"), finalModel);
 dash.metrics = metrics;
 dash.ntu     = ntuScenario;
 dash.status = "complete";
