@@ -27,14 +27,27 @@ screenshots, animated backgrounds, and paragraphs on cards.
 | 1: Which buildings need attention? | 0:00–0:30 | Project name MatrixNotFound; simple building visual; one-sentence goal | We predict energy intensity from building and weather information to help prioritize investigation. |
 | 2: Real data, real challenges | 0:30–1:10 | Cards: 75,757 training rows; 9,705 test rows; rating missingness 35.3%; years 1–6 to 7 | Missing information and a future-year shift make validation and cleaning important. |
 | 3: How our pipeline learns | 1:10–1:55 | Five-node pipeline with a visible validation boundary | We fit cleaning on training folds, compare models on hidden answers, then refit for the unlabeled buildings. |
-| 4: What improved the model? | 1:55–2:50 | Real RMSE bars for mean/tree/Bag/LSBoost; temporal score annotation | Explain the winning change and its measured improvement; lower RMSE is better. |
-| 5: Show that it works | 2:50–3:50 | Real observed-vs-predicted plot and short prerecorded run or live export | Show a saved bundle producing a validated id/site_eui CSV, with honest limits. |
+| 4: What improved the model? | 1:55–2:50 | `figures/1_rmse_by_year.png` plus `2_validation_gap.png`: tree 61.0 → LSBoost v1 41.1 → v2 41.8 → v3 40.1 | Boosting cut error by 33%; shrinkage didn't help; removing the monthly temperature columns that act as state-year fingerprints did. Lower RMSE is better. |
+| 5: Show that it works | 2:50–3:50 | `figures/3_predicted_vs_actual.png`, `figures/5_retrofit_radar.png` and `ProjectReport.html` | The model learns what a building should use, so buildings far above that are the first to audit: 1,316 buildings use 50%+ more than expected. |
 | 6: Impact, limitations, next step | 3:50–4:30 | Three short cards; public repository link or QR | This is a prioritization signal. Future-year uncertainty and unusual buildings remain challenges; next step is stronger temporal evaluation. |
+
+## Verified results to use (full run of `main.m`, seed 42)
+
+| Fact | Value |
+| --- | --- |
+| LOYO RMSE: tree / LSBoost v1 / v2 / v3 | 61.02 / 41.06 / 41.85 / **40.12** |
+| Improvement, tree → v3 | 34% lower RMSE (`100*(61.02-40.12)/61.02`) |
+| Tree, random 5-fold vs LOYO | 50.29 vs 61.02 (random folds understate error by 10.7) |
+| Leakage fixed | Tree LOYO 58.6 → 61.0 once preprocessing moved inside the folds |
+| Engineered features in the top 9 predictors | 4 (Energy Star × area, age, area × HDD, area × CDD) |
+| Retrofit Radar, latest year | 1,316 of 22,449 buildings use 50%+ more than expected; top 50 = 1,573 GWh/yr excess |
+
+All figures are in `figures/`; the full narrative is in `ProjectReport.html`.
 
 ## Evidence checklist
 
-Fill result fields only from the saved experiment report. Until then use
-`RESULT PENDING`, never invented scores. Include sample counts on error slices.
+Fill result fields only from the verified results above or the saved experiment
+report; never invented scores. Include sample counts on error slices.
 Compute relative RMSE improvement as
 `100 * (baselineRMSE - selectedRMSE) / baselineRMSE`; label which baseline.
 Do not describe that percentage as energy saved. Show the random CV and temporal
@@ -48,13 +61,14 @@ depend on lengthy training. Provide a backup recording and PDF export.
 ## Suggested demo sequence, under 60 seconds
 
 1. Show the input building columns and one sentence explaining the target.
-2. Run the implemented inference entry point with the saved bundle (once built).
-3. Show the export check reporting the expected row count, correct columns and
-   finite predictions.
-4. Open the CSV and show the real evaluation chart, then return to the slides.
+2. Run `ProjectReport` in MATLAB (seconds; it loads the saved results), or open
+   `ProjectReport.html`.
+3. Show the end of a `main` run log: "Wrote 9705 predictions", the passing
+   submission checks and the model comparison table.
+4. Open `results/retrofit_shortlist.csv` and the Retrofit Radar chart, then
+   return to the slides.
 
-The complete entry point is planned; do not claim this sequence already runs.
-Before recording, replace command placeholders with commands tested by the team.
+Do not run `main` live: the full pipeline takes 25-35 minutes.
 
 ## Delivery checklist
 

@@ -9,6 +9,8 @@
 %   Step 3    engineerFeatures   building age, thermal load, efficiency scale
 %   Step 4    trainModels        tree vs. 3 LSBoost iterations, LOYO CV
 %   Step 5    writeSubmission    predict year 7, validate, write CSV
+%   Impact    retrofitRadar      rank buildings using more energy than expected
+%             makeFigures        save presentation figures to figures/
 %
 % Steps 2-3 run inside every cross-validation fold (fit on the training
 % fold only) and once more on all training rows to prepare the test set.
@@ -53,3 +55,20 @@ assert(isequal(submission.id, sampleSolution.id), ...
 % comparison tables, and out-of-fold predictions (no ensembles of losers).
 save(fullfile(resultsDir, "pipelineResults.mat"), "finalModel", "cvReport", "yTrain");
 fprintf("Saved results to %s\n", fullfile(resultsDir, "pipelineResults.mat"));
+
+%% Impact: Retrofit Radar shortlist and presentation figures
+% Compare each building's actual EUI with what the model expects for similar
+% buildings, rank by excess energy, and save the figures used in the slides.
+shortlist = retrofitRadar(trainTbl, yTrain, cvReport.outOfFoldPredictions, ...
+    fullfile(resultsDir, "retrofit_shortlist.csv"));
+makeFigures(cvReport, finalModel, yTrain, shortlist, fullfile(projectRoot, "figures"));
+
+%% Report: export the live-script walkthrough to HTML
+% Non-critical: the submission is already written, so a failed export only warns.
+try
+    export(fullfile(projectRoot, "ProjectReport.m"), fullfile(projectRoot, "ProjectReport.html"), ...
+        Format="html", Run=true);
+    fprintf("Exported ProjectReport.html\n");
+catch err
+    warning("main:reportExportFailed", "ProjectReport export failed: %s", err.message);
+end
