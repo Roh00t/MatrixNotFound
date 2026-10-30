@@ -1,6 +1,6 @@
 %[text] # Retrofit Radar: Predicting Building Energy Use with MATLAB
 %[text] **Team MatrixNotFound** · Learn to Hack: MATLAB Edition 2026
-%[text] **Interactive versions:** open `dashboard/index.html` (live charts that update while `main.m` runs) and `dashboard/simulator.html` (click a 3D building and the model runs in your browser).
+%[text] **Project pages:** [Home](index.html) · [Results dashboard](dashboard/index.html) (interactive charts that update while `main.m` runs) · [3D simulator](dashboard/simulator.html) (click a building and the model runs in your browser) · Written report (this page)
 %[text] This report walks through our solution using the results saved by `main.m`. It does not retrain anything, so it runs in seconds. Run `main.m` first to create `results/pipelineResults.mat`, `results/retrofit_shortlist.csv` and the figures in `figures/`.
 %%
 %[text] ## 1. The problem

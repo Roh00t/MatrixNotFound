@@ -8,39 +8,34 @@ window.DASHBOARD = {
     "testRows": 9705,
     "predictors": 62
   },
-  "headline": {
-    "bestModel": "LSBoost v3 (feature selection)",
-    "bestRMSE": 40.122702074480131,
-    "baselineRMSE": 61.022223472396092,
-    "improvementPct": 34.249032907445645,
-    "kfoldRMSE": 50.28737344607358,
-    "kfoldOptimism": 10.734850026322512,
-    "oofRMSE": 40.122702074480131,
-    "radarBuildings": 22449,
-    "radarFlagged": 1316,
-    "radarFlaggedPct": 5.8621764889304639,
-    "shortlistGWh": 1572.81114698548
-  },
+  "years": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
   "modelTable": [
     {
       "Model": "Regression tree (baseline)",
       "LOYO_RMSE": 61.022223472396092,
-      "CV_Runtime_min": 1.2391024506944446
+      "CV_Runtime_min": 1.2411752993055556
     },
     {
       "Model": "LSBoost v1 (initial)",
       "LOYO_RMSE": 41.056059853939963,
-      "CV_Runtime_min": 9.5586574798611128
+      "CV_Runtime_min": 9.5883992368055555
     },
     {
       "Model": "LSBoost v2 (shrinkage)",
       "LOYO_RMSE": 41.848673686602034,
-      "CV_Runtime_min": 3.9610512868055556
+      "CV_Runtime_min": 3.9856911381944444
     },
     {
       "Model": "LSBoost v3 (feature selection)",
       "LOYO_RMSE": 40.122702074480131,
-      "CV_Runtime_min": 6.5497049409722221
+      "CV_Runtime_min": 6.8020440395833335
     }
   ],
   "perYear": [
@@ -77,14 +72,19 @@ window.DASHBOARD = {
       41.314206649994766
     ]
   ],
-  "years": [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6"
-  ],
+  "headline": {
+    "bestModel": "LSBoost v3 (feature selection)",
+    "bestRMSE": 40.122702074480131,
+    "baselineRMSE": 61.022223472396092,
+    "improvementPct": 34.249032907445645,
+    "kfoldRMSE": 50.28737344607358,
+    "kfoldOptimism": 10.734850026322512,
+    "oofRMSE": 40.122702074480131,
+    "radarBuildings": 22449,
+    "radarFlagged": 1316,
+    "radarFlaggedPct": 5.8621764889304639,
+    "shortlistGWh": 1572.81114698548
+  },
   "validationGap": [
     {
       "Scheme": "Random 5-fold",
@@ -1274,7 +1274,7 @@ window.DASHBOARD = {
     "rows": 9705,
     "min": 0,
     "median": 64.7506121658962,
-    "max": 650.586231661434,
+    "max": 650.58623166143389,
     "binEdges": [
       0,
       25,
@@ -1349,11 +1349,13 @@ window.DASHBOARD = {
   },
   "metrics": [
     {
-      "MAE": 21.0376467164874,
-      "MSE": 1609.83122175749,
-      "RMSE": 40.1227020744801,
-      "R2": 0.525633881650333,
-      "MedianAE": 12.5652353595765
+      "MAE": 21.037646716487409,
+      "MSE": 1609.8312217574924,
+      "RMSE": 40.122702074480131,
+      "R2": 0.52563388165033331,
+      "MedianAE": 12.56523535957654,
+      "P90AE": 44.608123981624146,
+      "MeanBias": 0.13204210996087726
     }
   ],
   "ntu": [
@@ -1361,8 +1363,8 @@ window.DASHBOARD = {
       "name": "The Hive",
       "year_built": 2015,
       "floor_area": 140000,
-      "predicted_eui": 109.431381947274,
-      "predicted_MWh_per_year": 4489.96410784129,
+      "predicted_eui": 109.43138194727418,
+      "predicted_MWh_per_year": 4489.964107841286,
       "climate_state": "State_2",
       "us_university_median_eui": 90.798560625
     },
@@ -1370,11 +1372,11 @@ window.DASHBOARD = {
       "name": "The Arc",
       "year_built": 2018,
       "floor_area": 120000,
-      "predicted_eui": 102.205572259455,
-      "predicted_MWh_per_year": 3594.4195706449,
+      "predicted_eui": 102.20557225945507,
+      "predicted_MWh_per_year": 3594.4195706448972,
       "climate_state": "State_2",
       "us_university_median_eui": 90.798560625
     }
   ],
-  "updated": "2026-10-30 14:47:02"
+  "updated": "2026-10-30 15:13:02"
 };
