@@ -28,7 +28,7 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
          font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-  .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
+  .wrap { max-width: 1720px; margin: 0 auto; padding: 20px 16px 48px; }
   header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 20px; margin-bottom: 14px; }
   .topnav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
   .topnav a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
@@ -38,11 +38,12 @@
   h1 { margin: 0; font-size: 26px; letter-spacing: -.01em; }
   .sub { margin: 2px 0 0; color: var(--muted); }
   a { color: var(--blue); }
-  .layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); gap: 16px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 2.3fr) minmax(320px, 1fr); gap: 16px; }
   @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  .stage { position: sticky; top: 16px; height: 600px; align-self: start; border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+  /* The 3D view fills the viewport height below the header (and stays put while the panel scrolls). */
+  .stage { position: sticky; top: 16px; height: calc(100vh - 150px); min-height: 520px; max-height: 1100px; align-self: start; border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
            background: linear-gradient(var(--sky-top), var(--sky-bottom)); box-shadow: var(--shadow); }
-  @media (max-width: 900px) { .stage { height: 380px; } }
+  @media (max-width: 900px) { .stage { position: relative; top: 0; height: 60vh; min-height: 380px; } }
   canvas { display: block; width: 100%; height: 100%; position: absolute; inset: 0; cursor: grab; }
   canvas.pointer { cursor: pointer; }
   .label { position: absolute; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap;
@@ -454,9 +455,9 @@ async function start3D() {
   function frame() {
     const size = sceneBox.getSize(new THREE.Vector3()), center = sceneBox.getCenter(new THREE.Vector3());
     const vfov = THREE.MathUtils.degToRad(camera.fov), hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
-    const dist = 1.25 * Math.max(size.x / 2 / Math.tan(hfov / 2), size.y / 2 / Math.tan(vfov / 2)) + size.z / 2;
+    const dist = 0.94 * Math.max(size.x / 2 / Math.tan(hfov / 2), size.y / 2 / Math.tan(vfov / 2)) + size.z / 2;
     controls.target.copy(center);
-    camera.position.copy(center).add(new THREE.Vector3(0, 0.38, 1).normalize().multiplyScalar(dist));
+    camera.position.copy(center).add(new THREE.Vector3(0, 0.3, 1).normalize().multiplyScalar(dist));
     controls.update();
   }
 
@@ -468,6 +469,30 @@ async function start3D() {
   new ResizeObserver(resize).observe(stage); resize();
 
   const v = new THREE.Vector3();
+  const corner = new THREE.Vector3();
+  const centre = (b) => b.box.getCenter(new THREE.Vector3());
+
+  // Screen-space rectangle (NDC) covered by a building's bounding box.
+  function screenRect(b) {
+    const r = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    for (const x of [b.box.min.x, b.box.max.x]) for (const y of [b.box.min.y, b.box.max.y]) for (const z of [b.box.min.z, b.box.max.z]) {
+      corner.set(x, y, z).project(camera);
+      r.minX = Math.min(r.minX, corner.x); r.maxX = Math.max(r.maxX, corner.x);
+      r.minY = Math.min(r.minY, corner.y); r.maxY = Math.max(r.maxY, corner.y);
+    }
+    return r;
+  }
+
+  // A label is hidden when its anchor falls on a building that is nearer the camera.
+  function hiddenBehind(b, anchor) {
+    const distance = camera.position.distanceTo(centre(b));
+    return Object.values(buildings).some((other) => {
+      if (other === b || camera.position.distanceTo(centre(other)) >= distance) return false;
+      const r = screenRect(other);
+      return anchor.x >= r.minX && anchor.x <= r.maxX && anchor.y >= r.minY && anchor.y <= r.maxY;
+    });
+  }
+
   renderer.setAnimationLoop(() => {
     controls.update();
     if (scanning) {
@@ -480,7 +505,7 @@ async function start3D() {
       v.set((b.box.min.x + b.box.max.x) / 2, b.box.max.y + 0.25, (b.box.min.z + b.box.max.z) / 2).project(camera);
       b.label.style.left = `${(v.x * 0.5 + 0.5) * stage.clientWidth}px`;
       b.label.style.top = `${(-v.y * 0.5 + 0.5) * stage.clientHeight}px`;
-      b.label.style.display = v.z < 1 ? "block" : "none";
+      b.label.style.display = v.z < 1 && !hiddenBehind(b, v) ? "block" : "none";
     }
     renderer.render(scene, camera);
   });
