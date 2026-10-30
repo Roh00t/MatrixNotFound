@@ -1,81 +1,153 @@
-# Architecture
+# Architecture and developer contracts
 
-## Overview
+This is the target architecture, not a claim that every listed module exists.
+See [docs/STATUS.md](docs/STATUS.md) for current implementation status and
+[pipeline.md](pipeline.md) for the modeling decisions.
 
-`main.m` is the single entry point. It runs five stages, each a function in `src/`, and then turns the model into the **Retrofit Radar** shortlist and a set of presentation figures. `ProjectReport.m` is a live script that explains the results without retraining.
+## Data flow
 
 ```mermaid
 flowchart TD
-    A[data/train.csv<br/>data/test.csv] --> B[loadData<br/>types, target split,<br/>shared category levels]
-    B --> C{trainModels}
-    subgraph CV [Leave-one-year-out CV: 6 folds, one per Year_Factor]
-        direction TB
-        D[preprocessData<br/>fit on training fold only] --> E[engineerFeatures]
-        E --> F[fit candidate<br/>tree / LSBoost v1 / v2 / v3]
-        F --> G[predict held-out year<br/>computeRMSE]
-    end
-    C --> CV
-    CV --> H[compare LOYO RMSE,<br/>refit best on all rows,<br/>compact]
-    B --> I[preprocessData + engineerFeatures<br/>fit on all train, apply to test]
-    H --> J[writeSubmission<br/>submission.csv]
-    I --> J
-    H --> K[retrofitRadar<br/>results/retrofit_shortlist.csv]
-    H --> L[makeFigures<br/>figures/*.png]
-    K --> L
-    H --> M[(results/pipelineResults.mat)]
-    M --> N[ProjectReport.m<br/>ProjectReport.html]
+    A[Immutable CSV inputs] --> B[Load and audit schema]
+    B --> C[Save raw year metadata and fixed folds]
+    C --> D[Fold training rows]
+    C --> E[Fold validation rows]
+    D --> F[Fit preprocessing state]
+    F --> G[Apply state and engineer training features]
+    F --> H[Apply same state and engineer validation features]
+    E --> H
+    G --> I[Train candidate]
+    I --> J[Predict validation]
+    H --> J
+    J --> K[OOF metrics and temporal check]
+    K --> L[Freeze selected specification]
+    L --> M[Refit state and models on all labels]
+    B --> N[Unlabeled test rows]
+    M --> O[Apply saved state and predict]
+    N --> O
+    O --> P[Validate and export CSV]
+    K --> Q[Reports and presentation charts]
 ```
 
-## Modules
+There is no arrow from validation targets or test rows to fitted preprocessing.
+Temporal validation uses the same fit/apply path with a different split.
 
-| File | Stage | Responsibility |
+## File layout
+
+```text
+step01_ingest.m                 existing beginner entry point
+run_pipeline.m                 planned complete entry point
+config/defaultConfig.m         planned central configuration
+src/loadBuildingData.m         existing CSV loader
+src/auditData.m                planned distribution/sentinel audit
+src/makeValidationSplits.m     planned shared folds and temporal split
+src/fitPreprocessor.m          planned statistics and category policies
+src/applyPreprocessor.m        planned deterministic application
+src/engineerFeatures.m         planned feature creation, no target input
+src/trainCandidate.m           planned estimator factory
+src/crossValidateModels.m      planned OOF orchestration
+src/evaluatePredictions.m      planned metrics and slice diagnostics
+src/rmse.m                     planned strict metric helper
+src/trainFinalModel.m          planned full-data refit
+src/predictBuildingEnergy.m    planned bundle-based inference
+src/writeSubmission.m          planned guarded export
+src/createReport.m             planned charts/tables
+tests/                         planned MATLAB function-based tests
+data/                          existing competition CSVs
+artifacts/<run-id>/             planned model/config/metrics outputs
+docs/                          handoff, resources, presentation and status
+```
+
+Keep the supplied starter and existing teammate files intact. Generated model
+bundles can be large; keep them local unless a deliberate release artifact is
+needed. Existing tracked CSVs remain tracked; do not introduce additional raw
+data copies, runtime preference folders or credentials into commits.
+
+## Function contracts
+
+| Function | Inputs | Outputs and invariants |
 | --- | --- | --- |
-| `main.m` | Entry point | Seed, paths, runs every stage in order, saves results |
-| `src/loadData.m` | 1. Ingest | `readtable` with explicit types; categorical `Year_Factor`, `State_Factor`, `building_class`, `facility_type`; separate `site_eui` and `id`; give train and test the same category levels |
-| `src/preprocessData.m` | 2. Clean and impute | `Year_Factor` → number; `year_built == 0` → missing; `<name>_missing` flags; `energy_star_rating` filled by facility-type median; other gaps filled by the overall median. Fit on train, apply to both |
-| `src/engineerFeatures.m` | 3. Features | `building_age` (capped 0–100), `floor_area_x_hdd`, `floor_area_x_cdd`, `energy_star_x_floor_area` |
-| `src/crossValidateModel.m` | 4. Validate | Generic CV over any fold labels, with optional per-fold preparation; returns pooled RMSE, per-fold RMSE and out-of-fold predictions |
-| `src/trainModels.m` | 4. Select | Candidate list, LOYO for all, random 5-fold for the tree, `try/catch` fallback, refit and `compact` the winner |
-| `src/computeRMSE.m` | 4. Metric | RMSE with input validation |
-| `src/writeSubmission.m` | 5. Submit | Predict, clamp at 0, check values, write and read back `id,site_eui` (9,705 × 2) |
-| `src/retrofitRadar.m` | Impact | Actual vs expected EUI for the latest year, excess MWh/yr, ranked shortlist CSV |
-| `src/makeFigures.m` | Impact | Five PNGs for the slides and report (light theme, `exportgraphics`) |
-| `ProjectReport.m` | Demo | Live-script walkthrough, exported to HTML |
+| loadBuildingData | dataDir | Existing six outputs XTrain,yTrain,XTest,trainID,testID,report; extend with optional seventh meta output preserving raw year factors before category alignment |
+| auditData | raw predictors, target, metadata | Summary tables, validity-rule decisions; no mutation of original CSVs |
+| makeValidationSplits | training IDs, raw years, seed | Fixed foldID vector, temporal masks, split metadata; every random-fold row assigned once |
+| fitPreprocessor | fold-training X, configuration | Serializable state with no validation/test statistics |
+| applyPreprocessor | X, fitted state | Clean table and audit counts; same rows and order |
+| engineerFeatures | cleaned X, metadata, feature specification | Table with saved feature names/order; no targets accepted |
+| trainCandidate | XFit,yFit, candidate specification, seed | Trained estimator, timing, effective parameters |
+| crossValidateModels | raw X,y,metadata,splits,candidates,config | OOF matrix n-by-candidates, per-fold metrics, temporal results |
+| evaluatePredictions | actual,predicted,IDs,slices | Pooled RMSE, MAE, residuals, grouped counts/errors |
+| trainFinalModel | all labeled data, frozen spec,config | Complete prediction bundle |
+| predictBuildingEnergy | bundle,raw test X,metadata | Finite n-by-1 predictions, diagnostics; no fitting |
+| writeSubmission | testID,predictions,sample template,path | Reload-verified CSV and validation summary |
 
-## Key design decisions
+The current script continues to work with six outputs after the optional metadata
+extension. Do not parse numeric time from already undefined categorical values.
 
-**Validation mirrors the test set.** Every test row is `Year_Factor` 7, which never appears in training, and the test set has no State_6 buildings, although they are 67% of training. Random k-fold mixes years, and the same building appears in several years, so its error estimate is optimistic. Holding out one year at a time is the closest simulation of the real task.
+## Configuration contract
 
-**Preprocessing lives inside the folds.** `trainModels` passes `preparePredictors` to `crossValidateModel`, so medians and flags are learned from each training fold alone. Fitting preprocessing on all the data first hid about 2.4 RMSE of error for the baseline tree (58.6 → 61.0 once fixed).
+`defaultConfig` returns one struct containing Seed=2026, NumFolds=5, input/output
+paths, preprocessing thresholds, validity rules, feature flags, candidate structs,
+temporal validation masks/policy, clipping policy, and tuning/runtime limits.
+Paths resolve relative to the entry file, not the caller's arbitrary current
+directory. Verify required toolbox availability before a long run. Core needs
+MATLAB and Statistics and Machine Learning Toolbox; parallel processing is optional.
+Use MATLAB R2026b here; document any older release actually tested.
 
-**`Year_Factor` is numeric.** As a category, the unseen level 7 would carry no information. As a number, trees place year 7 alongside the most recent years. Trees do not extrapolate trends; they treat year 7 like the latest years they saw.
+Choose candidate settings in configuration rather than duplicating them in
+scripts. Record the effective resolved configuration with every experiment.
+Create output folders if missing; avoid overwriting prior runs. Proposed run ID:
+`yyyyMMdd_HHmmss_<short-commit>`, with a suffix if necessary for uniqueness.
 
-**Only meaningful features are added.** Floor area × degree days approximates the total seasonal heating and cooling load; Energy Star × floor area captures the scale of efficiency. Wind-vector features were rejected because 88–94% of test wind and fog values are missing.
+## Preprocessing state
 
-**The final model is compact.** `compact()` strips training data from the model, keeping `results/pipelineResults.mat` small.
+Store Version, InputNames, InputClasses, NumericMedians, FacilityRatingMedians,
+FacilityRatingSupport, GlobalRatingMedian, YearBuiltMedian, CategoryLevels,
+CategoryModes, MissingIndicatorNames, DroppedColumns, ValidityRules,
+FeatureSpec, OutputNames and OutputClasses. Store optional encoding/scaling state
+for estimator families that require it. Preserve categories as labels rather
+than relying on integer codes that may change across tables.
 
-## Model iteration log
+For fold fitting, rebuild category vocabulary from observed fold-training labels
+(remove unused levels inherited from global ingestion). Transform validation
+labels using that vocabulary and saved fallback. Native table-based tree models
+should receive actual categorical variables, never arbitrary numeric codes.
 
-LOYO RMSE (lower is better). Final numbers are filled in from the latest full run of `main.m`.
+## Final bundle and experiment artifacts
 
-| # | Model | Change | LOYO RMSE |
-| --- | --- | --- | --- |
-| 1 | Regression tree | Baseline, `fitrtree` defaults | _see README_ |
-| 2 | LSBoost v1 | 300 trees, LR 0.1, MaxNumSplits 63, MinLeafSize 20 | _see README_ |
-| 3 | LSBoost v2 | Shrinkage: 400 trees, LR 0.05, MinLeafSize 50, NumBins 50 | _see README_ |
-| 4 | LSBoost v3 | Feature selection: v1 without 36 monthly temperature columns | _see README_ |
+Bundle fields: SchemaVersion, Models (cell array), Weights, Preprocessor,
+FeatureSpec, PredictorNames, PostprocessPolicy, Config, MATLABVersion,
+ToolboxVersions, TrainingTimestamp, GitCommit, InputFingerprints and Metrics.
+Each model's feature representation must be reproducible; initially keep tree
+models on the same feature table to simplify blends. Use `compact` for supported
+models when saving if it preserves required inference behavior.
 
-## Outputs
+Save `bundle.mat`, `config.mat`, `fold_assignments.csv`, `experiments.csv`,
+`oof_predictions.csv`, `metrics.json`, `data_audit.csv`, charts and `submission.csv`
+inside the run directory. OOF CSV contains only training IDs and known targets;
+submission contains only test IDs and predictions. Record hashes/sizes of input
+files so results can be linked to a precise dataset version. A JSON report is a
+human/machine summary; the MAT bundle is the authoritative MATLAB inference state.
 
-| Path | Produced by | Committed |
-| --- | --- | --- |
-| `submission.csv` | `writeSubmission` | yes |
-| `results/retrofit_shortlist.csv` | `retrofitRadar` | yes |
-| `figures/*.png` | `makeFigures` | yes |
-| `ProjectReport.html` | `export` of `ProjectReport.m` | yes |
-| `results/pipelineResults.mat` | `main.m` | no (gitignored, regenerated) |
+## Failure handling and test requirements
 
-## Extending
+Fail early on missing files, target contamination of test predictors, schema
+mismatch, invalid target, duplicate IDs, all-missing required fields with no
+defined fallback, unexpected feature order, and nonfinite predictions. Include
+the offending column and stage in errors. Log counts of repairs and category
+fallbacks so quality issues are visible.
 
-- **Add a model:** add one entry to the `candidates` struct in `src/trainModels.m` with a name and a `@(X, y)` training function. It is automatically cross-validated, compared and eligible for selection.
-- **Add a feature:** add a row-wise column in `src/engineerFeatures.m`. It is applied identically in every fold and to the test set.
+Meaningful MATLAB tests should cover: leakage protection (extreme validation
+values do not change fitted medians), unseen/missing categories, all-missing
+facility group fallback, year-7 policy, deterministic folds, metric shape checks,
+test ID preservation, serialization equivalence, and CSV round-trip compliance.
+Include a small end-to-end synthetic smoke test independent of competition data.
+For the full dataset, run ingestion and one small tree before the full ensembles.
+
+## Collaboration boundaries
+
+One owner maintains configuration and interfaces. Other developers work behind
+these contracts; agree interface changes before merging. Use short feature
+branches, include actual validation commands/results in PRs, and commit only
+relevant files. Do not mix unreviewed generated artifacts with source changes.
+The documentation handoff is a development specification; implementation gates
+are explicitly tracked rather than assumed complete.
